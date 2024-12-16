@@ -1,1 +1,0 @@
-# https://github.com/octaprog7/SCD4x
