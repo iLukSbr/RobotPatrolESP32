@@ -1,13 +1,11 @@
-# MicroPython
-# MIT license
-# Copyright (c) 2021, Sensirion AG
-# Copyright (c) 2023, Chris Dirks
-# All rights reserved.
+# https://github.com/CDFER/scd4x-CO2
 
 import time
 from machine import I2C
 
 SCD4X_I2C_ADDRESS = 0x62
+I2C_RETRY_COUNT = 5
+I2C_RETRY_DELAY_MS = 100
 
 class SCD4X:
     def __init__(self, i2c: I2C, address: int = SCD4X_I2C_ADDRESS):
@@ -20,6 +18,7 @@ class SCD4X:
 
     def begin(self) -> int:
         try:
+            # Iniciar transmissão I2C para o endereço do sensor
             self.i2c.writeto(self.address, b'')
             print("SCD4X begin successful")
             return 0
@@ -51,13 +50,19 @@ class SCD4X:
     def start_periodic_measurement(self) -> int:
         print("Starting periodic measurement...")
         self._command_sequence(0x21B1)
-        print(f"Periodic measurement started with error: {self.get_error_text(self._error)}")
+        if self._error != 0:
+            print(f"Periodic measurement started with error: {self.get_error_text(self._error)}")
+        else:
+            print("Periodic measurement started successfully.")
         return self._error
 
     def stop_periodic_measurement(self) -> int:
         print("Stopping periodic measurement...")
         self._command_sequence(0x3F86)
-        print(f"Periodic measurement stopped with error: {self.get_error_text(self._error)}")
+        if self._error != 0:
+            print(f"Periodic measurement stopped with error: {self.get_error_text(self._error)}")
+        else:
+            print("Periodic measurement stopped successfully.")
         return self._error
 
     def read_measurement(self) -> tuple:
@@ -138,7 +143,8 @@ class SCD4X:
             4: "I2C other error",
             5: "I2C timeout",
             6: "bytesReceived != bytesRequested",
-            7: "Measurement out of range"
+            7: "Measurement out of range",
+            19: "No such device"
         }
         return error_texts.get(error_code, "Unknown error")
 
@@ -166,10 +172,33 @@ class SCD4X:
 
     def _write_bytes(self, register_address: int, data: bytes):
         print(f"Writing bytes to register {register_address:04X}: {data}")
-        self.i2c.writeto(self.address, bytes([register_address >> 8, register_address & 0xFF]) + data)
+        last_error = None
+        for attempt in range(I2C_RETRY_COUNT):
+            try:
+                self.i2c.writeto(self.address, bytes([register_address >> 8, register_address & 0xFF]) + data)
+                self._error = 0  # Success
+                return
+            except OSError as e:
+                last_error = e
+                last_error_code = e.args[0]
+                time.sleep_ms(I2C_RETRY_DELAY_MS)
+        self._error = last_error_code
+        print(f"Failed to write to register {register_address:04X} after {I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
 
     def _read_bytes(self, num_bytes: int) -> bytes:
         print(f"Reading {num_bytes} bytes from address {self.address:02X}")
-        data = self.i2c.readfrom(self.address, num_bytes)
-        print(f"Read bytes: {data}")
-        return data
+        last_error = None
+        for attempt in range(I2C_RETRY_COUNT):
+            try:
+                data = self.i2c.readfrom(self.address, num_bytes)
+                print(f"Read bytes: {data}")
+                self._error = 0  # Success
+                return data
+            except OSError as e:
+                last_error = e
+                last_error_code = e.args[0]
+                time.sleep_ms(I2C_RETRY_DELAY_MS)
+        self._error = last_error_code
+        print(f"Failed to read {num_bytes} bytes from address {self.address:02X} after {I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
+        return b''
+    

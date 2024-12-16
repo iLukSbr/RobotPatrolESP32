@@ -1,5 +1,6 @@
 from machine import I2C, Pin
 import utime
+import sys
 
 from flame import is_flame_detected
 from bme280 import BME280
@@ -10,7 +11,7 @@ from scd41 import SCD4X
 def main():
     try:
         print("Initializing I2C...")
-        i2c = I2C(0, scl=Pin(22), sda=Pin(21))
+        i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=115200)
         print("I2C initialized.")
         
         print("Initializing BME280 sensor...")
@@ -28,24 +29,24 @@ def main():
         while True:
             # Example usage
             sound_alarm('flame')
-            utime.sleep(1)  # Add a delay between alarms
+            utime.sleep(1)
             sound_alarm('co2')
-            utime.sleep(1)  # Add a delay between alarms
+            utime.sleep(1)
             sound_alarm('nh3')
-            utime.sleep(1)  # Add a delay between alarms
+            utime.sleep(1)
             
             found_addresses = i2c.scan()
             print("Found I2C addresses:", found_addresses)
             utime.sleep(1)
             
             temp, pressure, humidity = bme.read_compensated_data()
-            print("Temperature: {:.2f}C, Pressure: {:.2f}hPa, Humidity: {:.2f}%".format(temp, pressure, humidity))
+            print("Temperature: {:.2f} Celsius; Pressure: {:.2f} hPa; Humidity: {:.2f}%".format(temp, pressure, humidity))
             utime.sleep(1)
             
             if is_flame_detected():
-                print("Chama detectada!")
+                print("Flame detected!")
             else:
-                print("Nenhuma chama detectada.")
+                print("No flame detected.")
             utime.sleep(1)
             
             co2, nh3 = get_gas_concentrations(temp, humidity)
@@ -55,16 +56,22 @@ def main():
 
             try:
                 if scd4x.is_data_ready():
+                    print("Data is ready, reading measurement...")
                     co2_scd4x, t_scd4x, rh_scd4x = scd4x.read_measurement()
-                    print(f"SCD4x - CO2 [ppm]: {co2_scd4x:.0f}; T [°C]: {t_scd4x:.1f}; RH [%]: {rh_scd4x:.0f}")
+                    if co2_scd4x is not None:
+                        print(f"SCD41 - CO2 [ppm]: {co2_scd4x:.0f}; Temperature: {t_scd4x:.4f} Celsius; Humidity: {rh_scd4x:.4f}%")
+                    else:
+                        print("Failed to read SCD41 measurement")
                 else:
-                    print("SCD4x data not ready")
+                    print("SCD41 data not ready")
             except Exception as e:
-                print(f"Error reading SCD4x data: {e}")
+                print("Error reading SCD41 data:")
+                sys.print_exception(e)
             utime.sleep(1)
 
     except Exception as e:
-        print("An error occurred:", e)
+        print("An error occurred:")
+        sys.print_exception(e)
 
 if __name__ == "__main__":
     main()
