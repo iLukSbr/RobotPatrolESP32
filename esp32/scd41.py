@@ -14,13 +14,13 @@ class SCD4X:
         self._error = 0
         self._settingsChanged = False
         self._isValid = False
-        print(f"SCD4X initialized with address {self.address}")
+        # print(f"SCD4X initialized with address {self.address}")
 
     def begin(self) -> int:
         try:
             # Iniciar transmissão I2C para o endereço do sensor
             self.i2c.writeto(self.address, b'')
-            print("SCD4X begin successful")
+            # print("SCD4X begin successful")
             return 0
         except OSError as e:
             self._error = e.args[0]
@@ -28,7 +28,7 @@ class SCD4X:
             return self._error
 
     def is_connected(self) -> bool:
-        print("Checking if SCD4X is connected...")
+        # print("Checking if SCD4X is connected...")
         self.stop_periodic_measurement()
         time.sleep_ms(500)
 
@@ -48,25 +48,21 @@ class SCD4X:
         return True
 
     def start_periodic_measurement(self) -> int:
-        print("Starting periodic measurement...")
+        # print("Starting periodic measurement...")
         self._command_sequence(0x21B1)
         if self._error != 0:
             print(f"Periodic measurement started with error: {self.get_error_text(self._error)}")
-        else:
-            print("Periodic measurement started successfully.")
         return self._error
 
     def stop_periodic_measurement(self) -> int:
-        print("Stopping periodic measurement...")
+        # print("Stopping periodic measurement...")
         self._command_sequence(0x3F86)
         if self._error != 0:
             print(f"Periodic measurement stopped with error: {self.get_error_text(self._error)}")
-        else:
-            print("Periodic measurement stopped successfully.")
         return self._error
 
     def read_measurement(self) -> tuple:
-        print("Reading measurement...")
+        # print("Reading measurement...")
         self._write_bytes(0xEC05, b'')
         data = self._read_bytes(9)
 
@@ -79,7 +75,7 @@ class SCD4X:
                 print(f"Measurement out of range: {co2},{temperature},{humidity}")
                 self._error = 7
 
-            print(f"Measurement read: CO2={co2}, Temperature={temperature}, Humidity={humidity}")
+            # print(f"Measurement read: CO2={co2}, Temperature={temperature}, Humidity={humidity}")
             return co2, temperature, humidity
         else:
             self._error = 6
@@ -87,13 +83,13 @@ class SCD4X:
             return None, None, None
 
     def is_data_ready(self) -> bool:
-        print("Checking if data is ready...")
+        # print("Checking if data is ready...")
         ready = (self._read_sequence(0xE4B8) & 0x07FF) != 0x0000
-        print(f"Data ready: {ready}")
+        # print(f"Data ready: {ready}")
         return ready
 
     def set_calibration_mode(self, enable_auto_calibration: bool) -> int:
-        print(f"Setting calibration mode to {'auto' if enable_auto_calibration else 'manual'}...")
+        # print(f"Setting calibration mode to {'auto' if enable_auto_calibration else 'manual'}...")
         self.stop_periodic_measurement()
         time.sleep_ms(500)
 
@@ -104,30 +100,32 @@ class SCD4X:
                 self._write_sequence(0x2416, 0x0000, 0x81)
             self._settingsChanged = True
 
-        print(f"Calibration mode set with error: {self.get_error_text(self._error)}")
+        if self._error != 0:
+            print(f"Calibration mode set with error: {self.get_error_text(self._error)}")
         return self._error
 
     def get_calibration_mode(self) -> bool:
         mode = bool(self._read_sequence(0x2313))
-        print(f"Calibration mode is {'auto' if mode else 'manual'}")
+        # print(f"Calibration mode is {'auto' if mode else 'manual'}")
         return mode
 
     def reset_eeprom(self) -> int:
-        print("Resetting EEPROM...")
+        # print("Resetting EEPROM...")
         self.stop_periodic_measurement()
         time.sleep_ms(500)
 
         self._command_sequence(0x3632)
         time.sleep_ms(1200)
 
-        print(f"EEPROM reset with error: {self.get_error_text(self._error)}")
+        if self._error != 0:
+            print(f"EEPROM reset failed with error: {self.get_error_text(self._error)}")
         return self._error
 
     def save_settings(self) -> int:
         if self._settingsChanged:
-            print("Saving settings to EEPROM...")
+            # print("Saving settings to EEPROM...")
             self._command_sequence(0x3615)
-            print("Settings Saved to EEPROM")
+            # print("Settings Saved to EEPROM")
             time.sleep_ms(800)
         else:
             print("Settings not changed, save command not sent")
@@ -152,26 +150,26 @@ class SCD4X:
         return min_value < value <= max_value
 
     def _command_sequence(self, register_address: int):
-        print(f"Sending command sequence to register {register_address:04X}")
+        # print(f"Sending command sequence to register {register_address:04X}")
         self._write_bytes(register_address, b'')
 
     def _read_sequence(self, register_address: int) -> int:
-        print(f"Reading sequence from register {register_address:04X}")
+        # print(f"Reading sequence from register {register_address:04X}")
         data = self._read_bytes(3)
         if len(data) == 3:
             result = (data[0] << 8) | data[1]
-            print(f"Read sequence result: {result:04X}")
+            # print(f"Read sequence result: {result:04X}")
             return result
         else:
             print("Failed to read sequence")
             return 0
 
     def _write_sequence(self, register_address: int, value: int, checksum: int):
-        print(f"Writing sequence to register {register_address:04X} with value {value:04X} and checksum {checksum:02X}")
+        # print(f"Writing sequence to register {register_address:04X} with value {value:04X} and checksum {checksum:02X}")
         self._write_bytes(register_address, bytes([value >> 8, value & 0xFF, checksum]))
 
     def _write_bytes(self, register_address: int, data: bytes):
-        print(f"Writing bytes to register {register_address:04X}: {data}")
+        # print(f"Writing bytes to register {register_address:04X}: {data}")
         last_error = None
         for attempt in range(I2C_RETRY_COUNT):
             try:
@@ -186,12 +184,12 @@ class SCD4X:
         print(f"Failed to write to register {register_address:04X} after {I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
 
     def _read_bytes(self, num_bytes: int) -> bytes:
-        print(f"Reading {num_bytes} bytes from address {self.address:02X}")
+        # print(f"Reading {num_bytes} bytes from address {self.address:02X}")
         last_error = None
         for attempt in range(I2C_RETRY_COUNT):
             try:
                 data = self.i2c.readfrom(self.address, num_bytes)
-                print(f"Read bytes: {data}")
+                # print(f"Read bytes: {data}")
                 self._error = 0  # Success
                 return data
             except OSError as e:
@@ -202,3 +200,10 @@ class SCD4X:
         print(f"Failed to read {num_bytes} bytes from address {self.address:02X} after {I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
         return b''
     
+    def set_ambient_pressure(self, pressure: int):
+        if pressure < 0 or pressure > 1200:
+            raise ValueError("Pressure must be between 0 and 1200 hPa")
+        self._write_bytes(0xE000, bytes([pressure >> 8, pressure & 0xFF]))
+        if self._error != 0:
+            print(f"Setting ambient pressure failed with error: {self.get_error_text(self._error)}")
+        return self._error
