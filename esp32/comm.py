@@ -27,5 +27,7 @@ class UARTComm:
 
     def read_serial(self):
         message = self.uart.readline()
-        print("Serial message received: ", message)
+        if message is not None:
+            message = message.decode('utf-8').strip()
+            print(f"Received serial message: {message}")
         return message
