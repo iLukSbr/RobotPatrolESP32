@@ -2,9 +2,15 @@ from machine import UART, Pin
 import json
 
 class UARTComm:
-    def __init__(self, tx_pin=17, rx_pin=16, baudrate=115200, uart_num=1, timeout=1000):
+    TX_PIN = 17
+    RX_PIN = 16
+    BAUD_RATE = 115200
+    UART_NUM = 1
+    TIMEOUT = 1000
+        
+    def __init__(self, tx_pin=Pin(TX_PIN), rx_pin=Pin(RX_PIN), baudrate=BAUD_RATE, uart_num=UART_NUM, timeout=1000):
         try:
-            self.uart = UART(uart_num, baudrate=baudrate, tx=Pin(tx_pin), rx=Pin(rx_pin), timeout=timeout)
+            self.uart = UART(uart_num, baudrate=baudrate, tx=tx_pin, rx=rx_pin, timeout=timeout)
             self.json_message = {}
             # print(f"UART initialized on TX pin {tx_pin} and RX pin {rx_pin}")
         except Exception as e:

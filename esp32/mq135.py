@@ -5,16 +5,15 @@ import utime
 from machine import ADC, Pin
 import math
 
-# Configurações do sensor MQ135
-Measure_RL = 20.0
-MQ_Sample_Time = 5
-Measure_RoInCleanAir = 3.7
-
-# Pino ADC do ESP32
-MQ135_PIN = 34
-
 class MQ135:
-    """Classe para lidar com o sensor de gás MQ135"""
+    # Configurações do sensor MQ135
+    MEASURE_RL = 20.0
+    MQ_SAMPLE_TIME = 5
+    MEASURED_RO_IN_CLEAN_AIR = 3.7
+
+    # Pino ADC do ESP32
+    ADC_PIN = 34
+    
     # A resistência de carga na placa
     RLOAD = 10.0
     # Resistência de calibração no nível de CO2 atmosférico
@@ -35,8 +34,8 @@ class MQ135:
     # Nível de CO2 atmosférico para fins de calibração
     ATMOCO2 = 397.13
 
-    def __init__(self, pin_number=MQ135_PIN):
-        self.sensor = ADC(Pin(pin_number))
+    def __init__(self, adc_pin=Pin(ADC_PIN)):
+        self.sensor = ADC(adc_pin)
         self.sensor.atten(ADC.ATTN_11DB)  # Configura a atenuação para ler o valor completo de 0-3.3V
         self.raw_adc = 0
         self.rsAir = 0
@@ -66,23 +65,23 @@ class MQ135:
     def measure_Ro(self, temperature, humidity):
         """Calcula a razão Rs/Ro a partir da resistência Rs & Ro"""
         Measure_Ro = 0.0
-        for _ in range(MQ_Sample_Time):
+        for _ in range(self.MQ_SAMPLE_TIME):
             self.read_raw_data()
             self.rsAir = self.get_corrected_resistance(temperature, humidity)
             Measure_Ro += self.rsAir
             utime.sleep(0.1)
-        Measure_Ro = Measure_Ro / MQ_Sample_Time
-        Measure_Ro = Measure_Ro / Measure_RoInCleanAir
+        Measure_Ro = Measure_Ro / self.MQ_SAMPLE_TIME
+        Measure_Ro = Measure_Ro / self.MEASURED_RO_IN_CLEAN_AIR
         return Measure_Ro
 
     def measure_Rs(self, temperature, humidity):
         Measure_Rs = 0.0
-        for _ in range(MQ_Sample_Time):
+        for _ in range(self.MQ_SAMPLE_TIME):
             self.read_raw_data()
             self.rsAir = self.get_corrected_resistance(temperature, humidity)
             Measure_Rs += self.rsAir
             utime.sleep(0.1)
-        Measure_Rs = Measure_Rs / MQ_Sample_Time
+        Measure_Rs = Measure_Rs / self.MQ_SAMPLE_TIME
         return Measure_Rs
 
     def measure_ratio(self, temperature, humidity):
@@ -105,11 +104,8 @@ class MQ135:
         ppm = math.exp(((math.log(self.ratio, 10)) - b) / a)
         return {'nh3': ppm}
 
-# Instância global do sensor MQ135
-mq135_sensor = MQ135()
-
-def get_gas_concentrations(temperature, humidity):
-    """Obtém as concentrações de gases corrigidas para temperatura e umidade"""
-    co2 = mq135_sensor.calculate_ppm_CO2(temperature, humidity)
-    nh3 = mq135_sensor.calculate_ppm_NH3(temperature, humidity)
-    return co2, nh3
+    def get_gas_concentrations(self, temperature, humidity):
+        """Obtém as concentrações de gases corrigidas para temperatura e umidade"""
+        co2 = self.calculate_ppm_CO2(temperature, humidity)
+        nh3 = self.calculate_ppm_NH3(temperature, humidity)
+        return co2, nh3

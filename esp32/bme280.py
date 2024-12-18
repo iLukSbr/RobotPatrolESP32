@@ -4,28 +4,27 @@ import utime
 from ustruct import unpack
 from array import array
 
-# BME280 default address
-BME280_I2CADDR = 0x76
-
-# Operating Modes
-BME280_OSAMPLE_1 = 1
-BME280_OSAMPLE_2 = 2
-BME280_OSAMPLE_4 = 3
-BME280_OSAMPLE_8 = 4
-BME280_OSAMPLE_16 = 5
-
-BME280_REGISTER_CONTROL_HUM = 0xF2
-BME280_REGISTER_STATUS = 0xF3
-BME280_REGISTER_CONTROL = 0xF4
-
-MODE_SLEEP = const(0)
-MODE_FORCED = const(1)
-MODE_NORMAL = const(3)
-
-BME280_TIMEOUT = const(100)  # about 1 second timeout
-
 class BME280:
+    # BME280 default address
+    BME280_I2CADDR = 0x76
 
+    # Operating Modes
+    BME280_OSAMPLE_1 = 1
+    BME280_OSAMPLE_2 = 2
+    BME280_OSAMPLE_4 = 3
+    BME280_OSAMPLE_8 = 4
+    BME280_OSAMPLE_16 = 5
+
+    BME280_REGISTER_CONTROL_HUM = 0xF2
+    BME280_REGISTER_STATUS = 0xF3
+    BME280_REGISTER_CONTROL = 0xF4
+
+    MODE_SLEEP = const(0)
+    MODE_FORCED = const(1)
+    MODE_NORMAL = const(3)
+
+    BME280_TIMEOUT = const(100)  # about 1 second timeout
+    
     def __init__(self, mode=BME280_OSAMPLE_8, address=BME280_I2CADDR, i2c=None, **kwargs):
         if type(mode) is tuple and len(mode) == 3:
             self._mode_hum, self._mode_temp, self._mode_press = mode
@@ -35,7 +34,7 @@ class BME280:
             raise ValueError("Wrong type for the mode parameter, must be int or a 3 element tuple")
 
         for mode in (self._mode_hum, self._mode_temp, self._mode_press):
-            if mode not in [BME280_OSAMPLE_1, BME280_OSAMPLE_2, BME280_OSAMPLE_4, BME280_OSAMPLE_8, BME280_OSAMPLE_16]:
+            if mode not in [self.BME280_OSAMPLE_1, self.BME280_OSAMPLE_2, self.BME280_OSAMPLE_4, self.BME280_OSAMPLE_8, self.BME280_OSAMPLE_16]:
                 raise ValueError('Unexpected mode value {0}.'.format(mode))
 
         self.address = address
@@ -62,18 +61,18 @@ class BME280:
         self._l8_barray = bytearray(8)
         self._l3_resultarray = array("i", [0, 0, 0])
 
-        self._l1_barray[0] = self._mode_temp << 5 | self._mode_press << 2 | MODE_SLEEP
-        self.i2c.writeto_mem(self.address, BME280_REGISTER_CONTROL, self._l1_barray)
+        self._l1_barray[0] = self._mode_temp << 5 | self._mode_press << 2 | self.MODE_SLEEP
+        self.i2c.writeto_mem(self.address, self.BME280_REGISTER_CONTROL, self._l1_barray)
         self.t_fine = 0
 
     def read_raw_data(self, result):
         self._l1_barray[0] = self._mode_hum
-        self.i2c.writeto_mem(self.address, BME280_REGISTER_CONTROL_HUM, self._l1_barray)
-        self._l1_barray[0] = self._mode_temp << 5 | self._mode_press << 2 | MODE_FORCED
-        self.i2c.writeto_mem(self.address, BME280_REGISTER_CONTROL, self._l1_barray)
+        self.i2c.writeto_mem(self.address, self.BME280_REGISTER_CONTROL_HUM, self._l1_barray)
+        self._l1_barray[0] = self._mode_temp << 5 | self._mode_press << 2 | self.MODE_FORCED
+        self.i2c.writeto_mem(self.address, self.BME280_REGISTER_CONTROL, self._l1_barray)
 
-        for _ in range(BME280_TIMEOUT):
-            if self.i2c.readfrom_mem(self.address, BME280_REGISTER_STATUS, 1)[0] & 0x08:
+        for _ in range(self.BME280_TIMEOUT):
+            if self.i2c.readfrom_mem(self.address, self.BME280_REGISTER_STATUS, 1)[0] & 0x08:
                 utime.sleep_ms(10)
             else:
                 break

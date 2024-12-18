@@ -3,12 +3,12 @@
 import time
 from machine import I2C
 
-SCD4X_I2C_ADDRESS = 0x62
-I2C_RETRY_COUNT = 5
-I2C_RETRY_DELAY_MS = 100
-
-class SCD4X:
-    def __init__(self, i2c: I2C, address: int = SCD4X_I2C_ADDRESS):
+class SCD41:
+    SCD41_I2C_ADDRESS = 0x62
+    I2C_RETRY_COUNT = 5
+    I2C_RETRY_DELAY_MS = 100
+    
+    def __init__(self, i2c: I2C, address: int = SCD41_I2C_ADDRESS):
         self.i2c = i2c
         self.address = address
         self._error = 0
@@ -171,7 +171,7 @@ class SCD4X:
     def _write_bytes(self, register_address: int, data: bytes):
         # print(f"Writing bytes to register {register_address:04X}: {data}")
         last_error = None
-        for attempt in range(I2C_RETRY_COUNT):
+        for attempt in range(self.I2C_RETRY_COUNT):
             try:
                 self.i2c.writeto(self.address, bytes([register_address >> 8, register_address & 0xFF]) + data)
                 self._error = 0  # Success
@@ -179,14 +179,14 @@ class SCD4X:
             except OSError as e:
                 last_error = e
                 last_error_code = e.args[0]
-                time.sleep_ms(I2C_RETRY_DELAY_MS)
+                time.sleep_ms(self.I2C_RETRY_DELAY_MS)
         self._error = last_error_code
-        print(f"Failed to write to register {register_address:04X} after {I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
+        print(f"Failed to write to register {register_address:04X} after {self.I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
 
     def _read_bytes(self, num_bytes: int) -> bytes:
         # print(f"Reading {num_bytes} bytes from address {self.address:02X}")
         last_error = None
-        for attempt in range(I2C_RETRY_COUNT):
+        for attempt in range(self.I2C_RETRY_COUNT):
             try:
                 data = self.i2c.readfrom(self.address, num_bytes)
                 # print(f"Read bytes: {data}")
@@ -195,9 +195,9 @@ class SCD4X:
             except OSError as e:
                 last_error = e
                 last_error_code = e.args[0]
-                time.sleep_ms(I2C_RETRY_DELAY_MS)
+                time.sleep_ms(self.I2C_RETRY_DELAY_MS)
         self._error = last_error_code
-        print(f"Failed to read {num_bytes} bytes from address {self.address:02X} after {I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
+        print(f"Failed to read {num_bytes} bytes from address {self.address:02X} after {self.I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
         return b''
     
     def set_ambient_pressure(self, pressure: int):
