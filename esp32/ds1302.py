@@ -14,12 +14,12 @@ DS1302_REG_CTRL   = (0x90)
 DS1302_REG_RAM    = (0xC0)
 
 class DS1302:
-    def __init__(self, clk=Pin(17), dio=Pin(18), cs=Pin(19)):
+    def __init__(self, clk=Pin(5), dat=Pin(18), rst=Pin(19)):
         self.clk = clk
-        self.dio = dio
-        self.cs = cs
+        self.dat = dat
+        self.rst = rst
         self.clk.init(Pin.OUT)
-        self.cs.init(Pin.OUT)
+        self.rst.init(Pin.OUT)
 
     def _dec2hex(self, dat):
         return (dat//10) * 16 + (dat % 10)
@@ -28,33 +28,33 @@ class DS1302:
         return (dat//16) * 10 + (dat % 16)
 
     def _write_byte(self, dat):
-        self.dio.init(Pin.OUT)
+        self.dat.init(Pin.OUT)
         for i in range(8):
-            self.dio.value((dat >> i) & 1)
+            self.dat.value((dat >> i) & 1)
             self.clk.value(1)
             self.clk.value(0)
 
     def _read_byte(self):
         d = 0
-        self.dio.init(Pin.IN)
+        self.dat.init(Pin.IN)
         for i in range(8):
-            d = d | (self.dio.value() << i)
+            d = d | (self.dat.value() << i)
             self.clk.value(1)
             self.clk.value(0)
         return d
 
     def _get_reg(self, reg):
-        self.cs.value(1)
+        self.rst.value(1)
         self._write_byte(reg)
         t = self._read_byte()
-        self.cs.value(0)
+        self.rst.value(0)
         return t
 
     def _set_reg(self, reg, dat):
-        self.cs.value(1)
+        self.rst.value(1)
         self._write_byte(reg)
         self._write_byte(dat)
-        self.cs.value(0)
+        self.rst.value(0)
 
     def _wr(self, reg, dat):
         self._set_reg(DS1302_REG_WP, 0)
@@ -128,3 +128,6 @@ class DS1302:
             return self._get_reg(DS1302_REG_RAM + 1 + (reg % 31)*2)
         else:
             self._wr(DS1302_REG_RAM + (reg % 31)*2, dat)
+
+    def weekday_string(self, weekday):
+        return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][weekday]

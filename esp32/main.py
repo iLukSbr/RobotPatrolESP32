@@ -8,6 +8,7 @@ from mq135 import get_gas_concentrations
 from buzzer import sound_alarm
 from scd41 import SCD4X
 from ds1302 import DS1302
+from comm import UARTComm
 
 def main():
     try:
@@ -28,19 +29,20 @@ def main():
         # print("SCD4x sensor initialized.")
         
         # print("Initializing DS1302 RTC...")
-        ds1302 = DS1302(clk=Pin(17), dio=Pin(18), cs=Pin(19))
+        ds1302 = DS1302()
         ds1302.start()
-        ds1302.year(2024)
-        ds1302.month(12)
-        ds1302.day(18)
-        ds1302.hour(11)
-        ds1302.minute(30)
-        ds1302.second(0)
+        # ds1302.date_time([2024, 12, 18, 4, 9, 40, 30])
         # print("DS1302 RTC initialized.")
+
+        # print("Initializing UART communication...")
+        comm = UARTComm()
+        # print("UART communication initialized.")
 
         while True:
             timestamp = ds1302.date_time()
-            datetime_str = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(timestamp[0], timestamp[1], timestamp[2], timestamp[3], timestamp[4], timestamp[5])
+            datetime_str_iso = "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}".format(timestamp[0], timestamp[1], timestamp[2], timestamp[4], timestamp[5], timestamp[6])
+            comm.add_data("timestamp", datetime_str_iso)
+            datetime_str = "{:s}, {:02d}/{:02d}/{:04d} {:02d}:{:02d}:{:02d} {:s}".format(ds1302.weekday_string(timestamp[3]), timestamp[2], timestamp[1], timestamp[0], timestamp[4], timestamp[5], timestamp[6], "BRT")
 
             # found_addresses = i2c.scan()
             # print("Found I2C addresses:", found_addresses)
@@ -49,15 +51,20 @@ def main():
             temp, pressure, humidity = bme.read_compensated_data()
             if pressure is not None:
                 pressure_hpa = pressure / 100
-            if temp is not None and pressure is not None and humidity is not None:
-                print(f"[{datetime_str}] Temperature: {temp:.3f} Celsius; Pressure: {pressure_hpa:.3f} hPa; Humidity: {humidity:.3f}%")
+            # if temp is not None and pressure is not None and humidity is not None:
+            #     print(f"[{datetime_str}] Temperature: {temp:.3f} Celsius; Pressure: {pressure_hpa:.3f} hPa; Humidity: {humidity:.3f}%")
+            #     comm.add_data("temperature", temp)
+            #     comm.add_data("pressure", pressure_hpa)
+            #     comm.add_data("humidity", humidity)
             utime.sleep_ms(200)
             
             if is_flame_detected():
                 print(f"[{datetime_str}] Flame detected!")
                 sound_alarm('flame')
+                comm.add_data("flame", True)
             else:
                 print(f"[{datetime_str}] No flame detected.")
+                comm.add_data("flame", False)
             utime.sleep_ms(200)
             
             co2, nh3 = get_gas_concentrations(temp, humidity)
@@ -67,8 +74,12 @@ def main():
             #         sound_alarm('co2')
             if nh3['nh3'] is not None:
                 print(f"[{datetime_str}] MQ131 - Ammonia (NH3) concentration: {nh3['nh3']:.3f} ppm")
+                comm.add_data("nh3", nh3['nh3'])
                 if nh3['nh3'] > 2.88:
                     sound_alarm('nh3')
+                    comm.add_data("nh3_alarm", True)
+                else:
+                    comm.add_data("nh3_alarm", False)
 
             utime.sleep_ms(500)
 
@@ -80,8 +91,12 @@ def main():
                     co2_scd4x, t_scd4x, rh_scd4x = scd4x.read_measurement()
                     if co2_scd4x is not None:
                         print(f"[{datetime_str}] SCD41 - Carbon dioxide (CO2) concentration: {co2_scd4x:.0f} ppm")
+                        comm.add_data("co2", co2_scd4x)
                         if co2_scd4x > 1000:
                             sound_alarm('co2')
+                            comm.add_data("co2_alarm", True)
+                        else:
+                            comm.add_data("co2_alarm", False)
                     else:
                         print("Failed to read SCD41 measurement")
                     # if t_scd4x is not None:
@@ -94,6 +109,7 @@ def main():
                 print("Error reading SCD41 data:")
                 sys.print_exception(e)
 
+            comm.send_json()
             utime.sleep_ms(500)
 
     except Exception as e:
