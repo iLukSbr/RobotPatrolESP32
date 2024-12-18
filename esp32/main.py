@@ -110,6 +110,7 @@ def main():
                 sys.print_exception(e)
 
             comm.send_json()
+            comm.read_serial()
             utime.sleep_ms(500)
 
     except Exception as e:

@@ -25,10 +25,7 @@ class UARTComm:
     def add_data(self, key, value):
         self.json_message[key] = value
 
-# Exemplo de uso
-if __name__ == "__main__":
-    comm = UARTComm()
-    comm.add_data("temperature", 25.5)
-    comm.add_data("humidity", 60)
-    comm.print_json()
-    comm.send_json()
+    def read_serial(self):
+        message = self.uart.readline()
+        print("Serial message received: ", message)
+        return message
