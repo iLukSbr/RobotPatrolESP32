@@ -9,6 +9,8 @@ from buzzer import Buzzer
 from scd41 import SCD41
 from ds1302 import DS1302
 from ina219 import INA219
+from lsm303d import LSM303
+from l3gd20 import L3GD20
 from uart_comm import UARTComm
 
 def main():
@@ -51,6 +53,14 @@ def main():
         ina = INA219(i2c)
         ina.configure()
         # print("INA219 sensor initialized.")
+        
+        # print("Initializing LSM303D sensor...")
+        lsm303d = LSM303(i2c)
+        # print("LSM303D sensor initialized.")
+        
+        # print("Initializing L3GD20 sensor...")
+        l3gd20 = L3GD20(i2c)
+        # print("L3GD20 sensor initialized.")
 
         # print("Initializing UART communication...")
         comm = UARTComm()
@@ -128,9 +138,22 @@ def main():
                 sys.print_exception(e)
                 
             try:
-                print("Bus Voltage: %.3f V, Current: %.3f mA, Power: %.3f mW, Battery: %.3f%" % (ina.voltage(), ina.current(), ina.power(), ina.battery_percentage()))
+                print("INA219 - Bus Voltage: %.3f V, Current: %.3f mA, Power: %.3f mW, Battery: %.3f%" % (ina.voltage(), ina.current(), ina.power(), ina.battery_percentage()))
             except Exception as e:
-                print(f"Error reading sensor: {e}")
+                print(f"Error reading INA219: {e}")
+                
+            try:
+                accel_data = device.read_accel()
+                mag_data = device.read_mag()
+                print("LSM303D - Accelerometer: %.3f m/s^2, %.3f m/s^2, %.3f m/s^2, Magnetometer: %.3f uT, %.3f uT, %.3f uT" % (accel_data[0], accel_data[1], accel_data[2], mag_data[0], mag_data[1], mag_data[2]))
+            except Exception as e:
+                print(f"Error reading LSM303D: {e}")
+                
+            try:
+                gyro_data = device.read_gyro()
+                print("L3GD20 - Gyroscope: %.3f rad/s, %.3f rad/s, %.3f rad/s" % (gyro_data[0], gyro_data[1], gyro_data[2]))
+            except Exception as e:
+                print(f"Error reading L3GD20: {e}")
 
             comm.send_json()
             comm.read_serial()
