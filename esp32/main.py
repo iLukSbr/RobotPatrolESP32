@@ -8,6 +8,7 @@ from mq135 import MQ135
 from buzzer import Buzzer
 from scd41 import SCD41
 from ds1302 import DS1302
+from ina219 import INA219
 from uart_comm import UARTComm
 
 def main():
@@ -45,6 +46,11 @@ def main():
         ds1302.start()
         # ds1302.date_time([2024, 12, 18, 4, 9, 40, 30])
         # print("DS1302 RTC initialized.")
+        
+        # print("Initializing INA219 sensor...")
+        ina = INA219(i2c)
+        ina.configure()
+        # print("INA219 sensor initialized.")
 
         # print("Initializing UART communication...")
         comm = UARTComm()
@@ -120,6 +126,11 @@ def main():
             except Exception as e:
                 print("Error reading SCD41 data:")
                 sys.print_exception(e)
+                
+            try:
+                print("Bus Voltage: %.3f V, Current: %.3f mA, Power: %.3f mW, Battery: %.3f%" % (ina.voltage(), ina.current(), ina.power(), ina.battery_percentage()))
+            except Exception as e:
+                print(f"Error reading sensor: {e}")
 
             comm.send_json()
             comm.read_serial()
