@@ -8,7 +8,6 @@ from communication import DS1302, UARTComm, JSONParser
 from utils import *
 from sensors import FlameSensor, BME280, MQ135, SCD41, INA219, LSM303, L3GD20
 
-# Configurar o logger
 logging.basicConfig(level=logging.INFO)
 
 def main():
