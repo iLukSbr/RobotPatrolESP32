@@ -97,7 +97,7 @@ def main():
                 utime.sleep_ms(200)
             
             if ENABLE_MQ135:
-                co2, nh3 = get_gas_concentrations(temp, humidity)
+                co2, nh3 = mq135.get_gas_concentrations(temp, humidity)
                 if nh3['nh3'] is not None:
                     print(f"[{datetime_str}] MQ131 - Ammonia (NH3) concentration: {nh3['nh3']:.3f} ppm")
                     comm.add_data("nh3", nh3['nh3'])
