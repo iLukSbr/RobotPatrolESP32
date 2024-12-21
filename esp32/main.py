@@ -13,6 +13,14 @@ from lsm303d import LSM303
 from l3gd20 import L3GD20
 from uart_comm import UARTComm
 
+# Constants
+I2C_SCL_PIN = 22
+I2C_SDA_PIN = 21
+I2C_FREQ = 115200
+
+NH3_THRESHOLD = 2.88
+CO2_THRESHOLD = 1000
+
 # Flags to enable/disable components
 ENABLE_I2C = True
 ENABLE_BUZZER = True
@@ -29,7 +37,7 @@ ENABLE_UART_COMM = True
 def main():
     try:
         if ENABLE_I2C:
-            i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=115200)
+            i2c = I2C(0, scl=Pin(I2C_SCL_PIN), sda=Pin(I2C_SDA_PIN), freq=I2C_FREQ)
         
         if ENABLE_BUZZER:
             buzzer = Buzzer()
@@ -101,7 +109,7 @@ def main():
                 if nh3['nh3'] is not None:
                     print(f"[{datetime_str}] MQ131 - Ammonia (NH3) concentration: {nh3['nh3']:.3f} ppm")
                     comm.add_data("nh3", nh3['nh3'])
-                    if nh3['nh3'] > 2.88:
+                    if nh3['nh3'] > NH3_THRESHOLD:
                         if ENABLE_BUZZER:
                             buzzer.sound_alarm('nh3')
                         comm.add_data("nh3_alarm", True)
@@ -118,7 +126,7 @@ def main():
                         if co2_scd4x is not None:
                             print(f"[{datetime_str}] SCD41 - Carbon dioxide (CO2) concentration: {co2_scd4x:.0f} ppm")
                             comm.add_data("co2", co2_scd4x)
-                            if co2_scd4x > 1000:
+                            if co2_scd4x > CO2_THRESHOLD:
                                 if ENABLE_BUZZER:
                                     buzzer.sound_alarm('co2')
                                 comm.add_data("co2_alarm", True)
