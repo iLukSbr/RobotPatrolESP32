@@ -29,7 +29,7 @@ class L3GD20:
                     Defaults to :const:`L3DS20_RATE_100HZ`
     """
 
-    L3GD20_ADDRESS = const(0x6B)
+    L3GD20_ADDRESS = const(0x69)
     L3GD20_REGISTER_WHO_AM_I = const(0x0F)
     L3GD20_REGISTER_CTRL_REG1 = const(0x20)
     L3GD20_REGISTER_CTRL_REG2 = const(0x21)

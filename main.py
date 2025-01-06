@@ -11,6 +11,7 @@ def main():
     try:
         if ENABLE_I2C:
             i2c = I2C(0, scl=Pin(I2C_SCL_PIN), sda=Pin(I2C_SDA_PIN), freq=I2C_FREQ)
+            print("I2C devices found: ", [hex(device) for device in i2c.scan()])
         
         if ENABLE_BUZZER:
             buzzer = Buzzer()

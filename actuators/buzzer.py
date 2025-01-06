@@ -30,9 +30,6 @@ class Buzzer:
                 # print(f"Completed alarm for {alarm_type}")
             else:
                 raise ValueError("Invalid alarm type")
-            
-            # Reconfigura o pino 13 como saída digital com valor baixo
-            pin13 = Pin(13, Pin.OUT)
-            pin13.value(0)
+
         except Exception as e:
             print(f"An error occurred in sound_alarm: {e}")
