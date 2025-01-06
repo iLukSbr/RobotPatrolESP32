@@ -25,7 +25,7 @@ class BME280:
 
     BME280_TIMEOUT = const(100)  # about 1 second timeout
     
-    def __init__(self, mode=BME280_OSAMPLE_8, address=BME280_I2CADDR, i2c=None, **kwargs):
+    def __init__(self, i2c: I2C, mode=BME280_OSAMPLE_8, address=BME280_I2CADDR, **kwargs):
         if type(mode) is tuple and len(mode) == 3:
             self._mode_hum, self._mode_temp, self._mode_press = mode
         elif type(mode) == int:

@@ -1,14 +1,11 @@
 from machine import I2C, Pin
 import utime
 import sys
-import logging
 
 from actuators import Buzzer
 from communication import DS1302, UARTComm, JSONParser
 from utils import *
 from sensors import FlameSensor, BME280, MQ135, SCD41, INA219, LSM303, L3GD20
-
-logging.basicConfig(level=logging.INFO)
 
 def main():
     try:
@@ -19,7 +16,7 @@ def main():
             buzzer = Buzzer()
         
         if ENABLE_BME280:
-            bme = BME280(i2c=i2c)
+            bme = BME280(i2c)
 
         if ENABLE_SCD4X:
             scd4x = SCD41(i2c)
@@ -66,7 +63,7 @@ def main():
                 if pressure is not None:
                     pressure_hpa = pressure / 100
                 if temp is not None and pressure is not None and humidity is not None:
-                    logging.info(f"[{datetime_str}] Temperature: {temp:.3f} Celsius; Pressure: {pressure_hpa:.3f} hPa; Humidity: {humidity:.3f}%")
+                    info_print(f"[{datetime_str}] Temperature: {temp:.3f} Celsius; Pressure: {pressure_hpa:.3f} hPa; Humidity: {humidity:.3f}%")
                     json_parser.add_data("temperature", temp)
                     json_parser.add_data("pressure", pressure_hpa)
                     json_parser.add_data("humidity", humidity)
@@ -74,19 +71,19 @@ def main():
             
             if ENABLE_FLAME_SENSOR:
                 if flame.is_flame_detected():
-                    logging.info(f"[{datetime_str}] Flame detected!")
+                    info_print(f"[{datetime_str}] Flame detected!")
                     if ENABLE_BUZZER:
                         buzzer.sound_alarm('flame')
                     json_parser.add_data("flame", True)
                 else:
-                    logging.info(f"[{datetime_str}] No flame detected.")
+                    info_print(f"[{datetime_str}] No flame detected.")
                     json_parser.add_data("flame", False)
                 utime.sleep_ms(200)
             
             if ENABLE_MQ135:
                 co2, nh3 = mq135.get_gas_concentrations(temp, humidity)
                 if nh3['nh3'] is not None:
-                    logging.info(f"[{datetime_str}] MQ131 - Ammonia (NH3) concentration: {nh3['nh3']:.3f} ppm")
+                    info_print(f"[{datetime_str}] MQ131 - Ammonia (NH3) concentration: {nh3['nh3']:.3f} ppm")
                     json_parser.add_data("nh3", nh3['nh3'])
                     if nh3['nh3'] > NH3_THRESHOLD:
                         if ENABLE_BUZZER:
@@ -103,7 +100,7 @@ def main():
                             scd4x.set_ambient_pressure(int(pressure_hpa))
                         co2_scd4x, t_scd4x, rh_scd4x = scd4x.read_measurement()
                         if co2_scd4x is not None:
-                            logging.info(f"[{datetime_str}] SCD41 - Carbon dioxide (CO2) concentration: {co2_scd4x:.0f} ppm")
+                            info_print(f"[{datetime_str}] SCD41 - Carbon dioxide (CO2) concentration: {co2_scd4x:.0f} ppm")
                             json_parser.add_data("co2", co2_scd4x)
                             if co2_scd4x > CO2_THRESHOLD:
                                 if ENABLE_BUZZER:
@@ -112,35 +109,35 @@ def main():
                             else:
                                 json_parser.add_data("co2_alarm", False)
                         else:
-                            logging.info("Failed to read SCD41 measurement")
+                            info_print("Failed to read SCD41 measurement")
                     else:
-                        logging.info("SCD41 data not ready")
+                        info_print("SCD41 data not ready")
                 except Exception as e:
-                    logging.error("Error reading SCD41 data:", exc_info=True)
+                    error_print(f"Error reading SCD41 data: {e}")
                 
             if ENABLE_INA219:
                 try:
-                    logging.info("INA219 - Bus Voltage: %.3f V, Current: %.3f mA, Power: %.3f mW, Battery: %.3f%%" % (ina.voltage(), ina.current(), ina.power(), ina.battery_percentage()))
+                    info_print("INA219 - Bus Voltage: %.3f V, Current: %.3f mA, Power: %.3f mW, Battery: %.3f%%" % (ina.voltage(), ina.current(), ina.power(), ina.battery_percentage()))
                 except Exception as e:
-                    logging.error(f"Error reading INA219: {e}")
+                    error_print(f"Error reading INA219: {e}")
                 
             if ENABLE_LSM303D:
                 try:
                     accel_data = lsm303d.read_accel()
                     mag_data = lsm303d.read_mag()
-                    logging.info("LSM303D - Accelerometer: %.3f m/s^2, %.3f m/s^2, %.3f m/s^2, Magnetometer: %.3f uT, %.3f uT, %.3f uT" % (accel_data[0], accel_data[1], accel_data[2], mag_data[0], mag_data[1], mag_data[2]))
+                    info_print("LSM303D - Accelerometer: %.3f m/s^2, %.3f m/s^2, %.3f m/s^2, Magnetometer: %.3f uT, %.3f uT, %.3f uT" % (accel_data[0], accel_data[1], accel_data[2], mag_data[0], mag_data[1], mag_data[2]))
                 except Exception as e:
-                    logging.error(f"Error reading LSM303D: {e}")
+                    error_print(f"Error reading LSM303D: {e}")
                 
             if ENABLE_L3GD20:
                 try:
                     gyro_data = l3gd20.gyro
-                    logging.info("L3GD20 - Gyroscope: %.3f rad/s, %.3f rad/s, %.3f rad/s" % (gyro_data[0], gyro_data[1], gyro_data[2]))
+                    info_print("L3GD20 - Gyroscope: %.3f rad/s, %.3f rad/s, %.3f rad/s" % (gyro_data[0], gyro_data[1], gyro_data[2]))
                 except Exception as e:
-                    logging.error(f"Error reading L3GD20: {e}")
+                    error_print(f"Error reading L3GD20: {e}")
 
             message = json_parser.get_json_message()
-            logging.info(f"JSON message: {message}")
+            info_print(f"JSON message: {message}")
             
             if ENABLE_UART_COMM:
                 if message:
@@ -149,7 +146,7 @@ def main():
             utime.sleep_ms(500)
 
     except Exception as e:
-        logging.error("An error occurred:", exc_info=True)
+        error_print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()
