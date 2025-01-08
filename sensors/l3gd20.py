@@ -76,10 +76,6 @@ class L3GD20:
         self.i2c = i2c
         self.address = address
 
-        chip_id = self.read_register(self.L3GD20_REGISTER_WHO_AM_I)
-        if chip_id not in (0xD4, 0xD7):
-            raise RuntimeError(f"bad chip id ({chip_id:#x} != 0xD4 or 0xD7)")
-
         if rng not in (self.RANGE_250DPS, self.RANGE_500DPS, self.RANGE_2000DPS):
             raise ValueError("Range value must be one of RANGE_250DPS, RANGE_500DPS, or RANGE_2000DPS")
 

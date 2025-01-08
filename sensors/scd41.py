@@ -14,21 +14,21 @@ class SCD41:
         self._error = 0
         self._settingsChanged = False
         self._isValid = False
-        # print(f"SCD4X initialized with address {self.address}")
+        # print(f"SCD41 initialized with address {self.address}")
 
     def begin(self) -> int:
         try:
             # Iniciar transmissão I2C para o endereço do sensor
             self.i2c.writeto(self.address, b'')
-            # print("SCD4X begin successful")
+            # print("SCD41 begin successful")
             return 0
         except OSError as e:
             self._error = e.args[0]
-            print(f"SCD4X begin failed with error: {self.get_error_text(self._error)}")
+            print(f"SCD41 begin failed with error: {self.get_error_text(self._error)}")
             return self._error
 
     def is_connected(self) -> bool:
-        # print("Checking if SCD4X is connected...")
+        # print("Checking if SCD41 is connected...")
         self.stop_periodic_measurement()
         time.sleep_ms(500)
 
