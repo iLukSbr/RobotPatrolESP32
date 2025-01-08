@@ -1,7 +1,7 @@
 from machine import ADC, Pin
 
 class FlameSensor:
-    ADC_PIN = 35
+    ADC_PIN = 14
     FLAME_THRESHOLD = 1000
 
     def __init__(self, adc_pin=Pin(ADC_PIN), threshold=FLAME_THRESHOLD):

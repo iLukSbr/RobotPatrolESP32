@@ -12,7 +12,7 @@ class MQ135:
     MEASURED_RO_IN_CLEAN_AIR = 3.7
 
     # Pino ADC do ESP32
-    ADC_PIN = 34
+    ADC_PIN = 27
     
     # A resistência de carga na placa
     RLOAD = 10.0

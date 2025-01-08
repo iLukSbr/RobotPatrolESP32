@@ -28,10 +28,10 @@ def main():
             
         if ENABLE_HCSR04:
             hcsr04 = {
-                "front": HCSR04(trig_pin=5, echo_pin=18),
-                "left": HCSR04(trig_pin=6, echo_pin=19),
-                "right": HCSR04(trig_pin=7, echo_pin=20),
-                "rear": HCSR04(trig_pin=8, echo_pin=21)
+                "front": HCSR04(trig_pin=32, echo_pin=36),
+                "left": HCSR04(trig_pin=33, echo_pin=39),
+                "right": HCSR04(trig_pin=25, echo_pin=34),
+                "rear": HCSR04(trig_pin=26, echo_pin=35)
             }
 
         if ENABLE_INA219:
@@ -93,7 +93,7 @@ def main():
                 for key, sensor in hcsr04.items():
                     distance = sensor.medir_mediana()
                     if distance is not None:
-                        info_print(f"[{datetime_str}] {key.capitalize()} HCSR04 - Distance: {distance:.3f} cm")
+                        info_print(f"[{datetime_str}] HCSR04 {key} - Distance: {distance:.3f} cm")
                         json_parser.add_data(f"distance.{key}", distance)
                     utime.sleep_ms(200)
             
