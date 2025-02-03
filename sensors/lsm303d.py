@@ -1,3 +1,4 @@
+# Accelerometer/magnetometer LSM303
 # https://github.com/jackw01/lsm303-python
 
 import struct

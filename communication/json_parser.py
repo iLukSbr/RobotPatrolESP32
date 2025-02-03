@@ -1,3 +1,4 @@
+# JSON string/object manipulator
 import json
 
 class JSONParser:

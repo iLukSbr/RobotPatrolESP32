@@ -1,3 +1,4 @@
+# Ammonia NH3 sensor MQ135
 # https://github.com/ncdcommunity/Raspberry_Pi_ADC121C_MQ135_Amonia_Gas_Detection_Sensor_Python_Library
 # https://github.com/rubfi/MQ135
 
@@ -34,11 +35,11 @@ class MQ135:
     # Nível de CO2 atmosférico para fins de calibração
     ATMOCO2 = 397.13
 
-    def __init__(self, adc_pin=Pin(ADC_PIN)):
-        self.sensor = ADC(adc_pin)
+    def __init__(self, adc_pin=ADC_PIN):
+        self.sensor = ADC(Pin(adc_pin, Pin.IN))
         self.sensor.atten(ADC.ATTN_11DB)  # Configura a atenuação para ler o valor completo de 0-3.3V
         self.raw_adc = 0
-        self.rsAir = 0
+        self.rs_air = 0
         self.ratio = 0
 
     def read_raw_data(self):
@@ -67,8 +68,8 @@ class MQ135:
         Measure_Ro = 0.0
         for _ in range(self.MQ_SAMPLE_TIME):
             self.read_raw_data()
-            self.rsAir = self.get_corrected_resistance(temperature, humidity)
-            Measure_Ro += self.rsAir
+            self.rs_air = self.get_corrected_resistance(temperature, humidity)
+            Measure_Ro += self.rs_air
             utime.sleep(0.1)
         Measure_Ro = Measure_Ro / self.MQ_SAMPLE_TIME
         Measure_Ro = Measure_Ro / self.MEASURED_RO_IN_CLEAN_AIR
@@ -78,8 +79,8 @@ class MQ135:
         Measure_Rs = 0.0
         for _ in range(self.MQ_SAMPLE_TIME):
             self.read_raw_data()
-            self.rsAir = self.get_corrected_resistance(temperature, humidity)
-            Measure_Rs += self.rsAir
+            self.rs_air = self.get_corrected_resistance(temperature, humidity)
+            Measure_Rs += self.rs_air
             utime.sleep(0.1)
         Measure_Rs = Measure_Rs / self.MQ_SAMPLE_TIME
         return Measure_Rs

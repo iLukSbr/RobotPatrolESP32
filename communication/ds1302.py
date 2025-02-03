@@ -1,3 +1,4 @@
+# RTC Clock DS1302
 # https://github.com/omarbenhamid/micropython-ds1302-rtc
 
 from machine import Pin
@@ -14,16 +15,17 @@ class DS1302:
     DS1302_REG_CTRL   = (0x90)
     DS1302_REG_RAM    = (0xC0)
     
-    CLK_PIN = 5
+    CLK_PIN = 23
     DAT_PIN = 18
     RST_PIN = 19
     
-    def __init__(self, clk=Pin(CLK_PIN), dat=Pin(DAT_PIN), rst=Pin(RST_PIN)):
-        self.clk = clk
-        self.dat = dat
-        self.rst = rst
+    def __init__(self, clk=CLK_PIN, dat=DAT_PIN, rst=RST_PIN):
+        self.clk = Pin(clk)
+        self.dat = Pin(dat)
+        self.rst = Pin(rst)
         self.clk.init(Pin.OUT)
         self.rst.init(Pin.OUT)
+        self.start()
 
     def _dec2hex(self, dat):
         return (dat//10) * 16 + (dat % 10)

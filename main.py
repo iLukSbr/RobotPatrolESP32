@@ -2,10 +2,10 @@ from machine import I2C, Pin
 import utime
 import sys
 
-from actuators import Buzzer
+from actuators import KY006
 from communication import DS1302, UARTComm, JSONParser
 from utils import *
-from sensors import BME280, FlameSensor, HCSR04, INA219, L3GD20, LSM303, MQ135, SCD41
+from sensors import BME280, KY026, HCSR04, INA219, L3GD20, LSM303, MQ135, SCD41
 
 def main():
     try:
@@ -16,27 +16,25 @@ def main():
         if ENABLE_BME280:
             bme = BME280(i2c)
             
-        if ENABLE_BUZZER:
-            buzzer = Buzzer()
+        if ENABLE_KY006:
+            ky006 = KY006(pwm_pin=13)
 
         if ENABLE_DS1302:
-            ds1302 = DS1302()
-            ds1302.start()
+            ds1302 = DS1302(clk=23, dat=18, rst=19)
 
-        if ENABLE_FLAME_SENSOR:
-            flame = FlameSensor()
+        if ENABLE_KY026:
+            ky026 = KY026(adc_pin=14)
             
         if ENABLE_HCSR04:
             hcsr04 = {
-                "front": HCSR04(trig_pin=32, echo_pin=36),
-                "left": HCSR04(trig_pin=33, echo_pin=39),
-                "right": HCSR04(trig_pin=25, echo_pin=34),
-                "rear": HCSR04(trig_pin=26, echo_pin=35)
+                "front": HCSR04(trig_pin=26, echo_pin=35),
+                "left": HCSR04(trig_pin=25, echo_pin=34),
+                "right": HCSR04(trig_pin=33, echo_pin=39),
+                "rear": HCSR04(trig_pin=32, echo_pin=36)
             }
 
         if ENABLE_INA219:
-            ina = INA219(i2c)
-            ina.configure()      
+            ina = INA219(i2c)     
 
         if ENABLE_L3GD20:
             l3gd20 = L3GD20(i2c)
@@ -45,17 +43,13 @@ def main():
             lsm303d = LSM303(i2c)
         
         if ENABLE_MQ135:
-            mq135 = MQ135()
+            mq135 = MQ135(adc_pin=27)
             
         if ENABLE_SCD41:
             scd41 = SCD41(i2c)
-            scd41.begin()
-            scd41.set_calibration_mode(False)
-            scd41.save_settings()
-            scd41.start_periodic_measurement()
 
         if ENABLE_UART_COMM:
-            comm = UARTComm()
+            comm = UARTComm(tx_pin=17, rx_pin=16)
             json_parser = JSONParser()
 
         while True:
@@ -78,11 +72,11 @@ def main():
                     json_parser.add_data("humidity", humidity)
                 utime.sleep_ms(200)
             
-            if ENABLE_FLAME_SENSOR:
-                if flame.is_flame_detected():
+            if ENABLE_KY026:
+                if ky026.is_flame_detected():
                     info_print(f"[{datetime_str}] Flame detected!")
-                    if ENABLE_BUZZER:
-                        buzzer.sound_alarm('flame')
+                    if ENABLE_KY006:
+                        ky006.sound_alarm('flame')
                     json_parser.add_data("flame", True)
                 else:
                     info_print(f"[{datetime_str}] No flame detected.")
@@ -103,8 +97,8 @@ def main():
                     info_print(f"[{datetime_str}] MQ131 - Ammonia (NH3) concentration: {nh3['nh3']:.3f} ppm")
                     json_parser.add_data("nh3", nh3['nh3'])
                     if nh3['nh3'] > NH3_THRESHOLD:
-                        if ENABLE_BUZZER:
-                            buzzer.sound_alarm('nh3')
+                        if ENABLE_KY006:
+                            ky006.sound_alarm('nh3')
                         json_parser.add_data("nh3_alarm", True)
                     else:
                         json_parser.add_data("nh3_alarm", False)
@@ -120,8 +114,8 @@ def main():
                             info_print(f"[{datetime_str}] SCD41 - Carbon dioxide (CO2) concentration: {co2_scd41:.0f} ppm")
                             json_parser.add_data("co2", co2_scd41)
                             if co2_scd41 > CO2_THRESHOLD:
-                                if ENABLE_BUZZER:
-                                    buzzer.sound_alarm('co2')
+                                if ENABLE_KY006:
+                                    ky006.sound_alarm('co2')
                                 json_parser.add_data("co2_alarm", True)
                             else:
                                 json_parser.add_data("co2_alarm", False)

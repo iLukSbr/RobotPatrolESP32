@@ -1,3 +1,4 @@
+# Temperature/air pressure/humidity sensor BME280
 # https://github.com/robert-hh/BME280
 
 import utime

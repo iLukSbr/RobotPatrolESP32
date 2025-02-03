@@ -5,7 +5,7 @@ Este módulo contém drivers para sensores.
 """
 
 from .bme280 import BME280
-from .flame_sensor import FlameSensor
+from .ky026 import KY026
 from .hcsr04 import HCSR04
 from .ina219 import INA219
 from .l3gd20 import L3GD20

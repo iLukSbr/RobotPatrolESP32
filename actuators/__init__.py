@@ -4,4 +4,4 @@ Módulo de Atuadores
 Este módulo contém drivers para atuadores.
 """
 
-from .buzzer import Buzzer
+from .ky006 import KY006

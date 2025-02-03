@@ -1,8 +1,10 @@
+# Voltage/current sensor INA219
 # https://github.com/chrisb2/pyb_ina219
 
 import utime
 from math import trunc
 from micropython import const
+from machine import I2C
 
 class INA219:
     """Provides all the functionality to interact with the INA219 sensor."""
@@ -125,6 +127,7 @@ class INA219:
         self._min_device_current_lsb = self._calculate_min_current_lsb()
         self._gain = None
         self._auto_gain_enabled = False
+        self.configure()
 
     def configure(self, voltage_range=RANGE_32V, gain=GAIN_AUTO, bus_adc=ADC_12BIT, shunt_adc=ADC_12BIT):
         """Configure and calibrate how the INA219 will take measurements.

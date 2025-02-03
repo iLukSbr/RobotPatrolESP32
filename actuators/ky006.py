@@ -1,7 +1,9 @@
+# Passive buzzer KY-006
+
 from machine import Pin, PWM
 import utime
 
-class Buzzer:
+class KY006:
     PIN = 13
     
     PATTERNS = {
@@ -12,7 +14,7 @@ class Buzzer:
     
     def __init__(self, pwm_pin=PIN):
         self.pwm_pin = pwm_pin
-        self.pwm = PWM(Pin(self.pwm_pin), freq=1)
+        self.pwm = PWM(Pin(self.pwm_pin, Pin.OUT), freq=1)
         
     def sound_alarm(self, alarm_type):
         try:

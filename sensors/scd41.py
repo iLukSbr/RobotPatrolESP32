@@ -1,3 +1,4 @@
+# Carbon dioxide CO2 sensor SCD41
 # https://github.com/CDFER/scd4x-CO2
 
 import time
@@ -14,6 +15,10 @@ class SCD41:
         self._error = 0
         self._settingsChanged = False
         self._isValid = False
+        self.begin()
+        self.set_calibration_mode(False)
+        self.save_settings()
+        self.start_periodic_measurement()
         # print(f"SCD41 initialized with address {self.address}")
 
     def begin(self) -> int:
