@@ -1,5 +1,5 @@
 from machine import I2C, Pin
-import utime
+import time
 import sys
 
 from actuators import KY006
@@ -111,7 +111,7 @@ def main():
             if any(ENABLE_HCSR04.values()):
                 try:
                     for key, sensor in hcsr04.items():
-                        distance = sensor.medir_mediana()
+                        distance = sensor.measure_median()
                         if distance is not None:
                             info_print(f"[{datetime_str}] HCSR04 {key} - Distance: {distance:.3f} cm")
                             json_parser.add_data(f"distance.{key}", distance)
@@ -182,23 +182,21 @@ def main():
                     
             if ENABLE_SCD41:
                 try:
-                    if scd41.is_data_ready():
-                        if pressure is not None:
-                            scd41.set_ambient_pressure(int(pressure_hpa))
-                        co2_scd41, t_scd41, rh_scd41 = scd41.read_measurement()
-                        if co2_scd41 is not None:
-                            info_print(f"[{datetime_str}] SCD41 - Carbon dioxide (CO2) concentration: {co2_scd41:.0f} ppm")
-                            json_parser.add_data("co2", co2_scd41)
-                            if co2_scd41 > CO2_THRESHOLD:
-                                if ENABLE_KY006:
-                                    ky006.sound_alarm('co2')
-                                json_parser.add_data("co2_alarm", True)
-                            else:
-                                json_parser.add_data("co2_alarm", False)
-                        else:
-                            info_print("Failed to read SCD41 measurement")
+                    if ENABLE_BME280 and pressure is not None:
+                        co2_scd41, t_scd41, rh_scd41 = scd41.read_measurement(int(pressure_hpa))
                     else:
-                        info_print("SCD41 data not ready")
+                        co2_scd41, t_scd41, rh_scd41 = scd41.read_measurement()
+                    if co2_scd41 is not None and co2_scd41 > 0:
+                        info_print(f"[{datetime_str}] SCD41 - Carbon dioxide (CO2) concentration: {co2_scd41:.0f} ppm")
+                        json_parser.add_data("co2", co2_scd41)
+                        if co2_scd41 > CO2_THRESHOLD:
+                            if ENABLE_KY006:
+                                ky006.sound_alarm('co2')
+                            json_parser.add_data("co2_alarm", True)
+                        else:
+                            json_parser.add_data("co2_alarm", False)
+                    else:
+                        info_print("Failed to read SCD41 measurement")
                 except Exception as e:
                     error_print(f"Error reading SCD41 data: {e}")
                     
@@ -212,7 +210,7 @@ def main():
                 
             json_parser.clear_json_message()
             
-            utime.sleep(1)
+            time.sleep_us(1)
             
         except Exception as e:
             error_print(f"An error occurred: {e}")

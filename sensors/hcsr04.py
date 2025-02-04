@@ -17,7 +17,7 @@ class HCSR04:
         else:
             return sorted_values[middle]
 
-    def measure_median(self, readings=5, timeout=100000):
+    def measure_median(self, readings=5, timeout=30000):
         distances = []
 
         for _ in range(readings):
@@ -30,11 +30,10 @@ class HCSR04:
             try:
                 duration = time_pulse_us(self.echo, 1, timeout)
                 if duration < 0:
-                    print(f"Negative duration ({duration} us)")
                     continue
                 distance = duration * 0.0343 / 2
                 if distance < 0:
-                    print(f"Negative distance ({distance} cm)")
+                    continue
                 distances.append(distance)
             except OSError as e:
                 print(f"Error: {e}")
@@ -42,7 +41,6 @@ class HCSR04:
             time.sleep_ms(50)
 
         if len(distances) < 3:
-            print("Not enough valid readings")
             return None
 
         median_distance = self.calculate_median(distances)

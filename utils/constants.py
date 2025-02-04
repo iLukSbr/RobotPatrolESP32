@@ -13,9 +13,9 @@ ENABLE_KY006 = True
 ENABLE_DS1302 = True
 ENABLE_KY026 = True
 ENABLE_HCSR04 = {
-    "front": False,
-    "left": False,
-    "right": False,
+    "front": True,
+    "left": True,
+    "right": True,
     "rear": False
 }
 ENABLE_HC020K = {

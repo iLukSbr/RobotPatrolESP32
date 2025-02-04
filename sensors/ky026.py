@@ -8,9 +8,9 @@ class KY026:
 
     def __init__(self, adc_pin=ADC_PIN, threshold=FLAME_THRESHOLD):
         self.sensor = ADC(Pin(adc_pin, Pin.IN))
-        self.sensor.atten(ADC.ATTN_11DB)  # Configura a atenuação para ler o valor completo de 0-3.3V
         self.threshold = threshold
 
     def is_flame_detected(self):
+        print(f"Reading flame sensor: {self.sensor.read()}")
         return self.sensor.read() < self.threshold  # Verifica se o valor lido é menor que o limiar
     

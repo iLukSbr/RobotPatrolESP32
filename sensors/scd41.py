@@ -6,8 +6,12 @@ from machine import I2C
 
 class SCD41:
     SCD41_I2C_ADDRESS = 0x62
-    I2C_RETRY_COUNT = 5
-    I2C_RETRY_DELAY_MS = 100
+    I2C_RETRY_COUNT = 1000
+    I2C_RETRY_DELAY_uS = 1
+    
+    co2 = 0
+    temperature = 0
+    humidity = 0
     
     def __init__(self, i2c: I2C, address: int = SCD41_I2C_ADDRESS):
         self.i2c = i2c
@@ -35,14 +39,14 @@ class SCD41:
     def is_connected(self) -> bool:
         # print("Checking if SCD41 is connected...")
         self.stop_periodic_measurement()
-        time.sleep_ms(500)
+        time.sleep_us(1)
 
         if self._error != 0:
             print(f"SCD4x returned endTransmission error {self._error}")
             return False
 
         self._command_sequence(0x3639)
-        time.sleep(10)
+        time.sleep_us(1)
 
         data = self._read_bytes(3)
         if data != b'\x00\x00\x81':
@@ -66,7 +70,9 @@ class SCD41:
             print(f"Periodic measurement stopped with error: {self.get_error_text(self._error)}")
         return self._error
 
-    def read_measurement(self) -> tuple:
+    def read_measurement(self, pressure=None) -> tuple:
+        if not self.is_data_ready():
+            return self.co2, self.temperature, self.humidity
         # print("Reading measurement...")
         self._write_bytes(0xEC05, b'')
         data = self._read_bytes(9)
@@ -79,13 +85,21 @@ class SCD41:
             if not self._in_range(co2, 40000, 0) or not self._in_range(temperature, 60, -10) or not self._in_range(humidity, 100, 0):
                 print(f"Measurement out of range: {co2},{temperature},{humidity}")
                 self._error = 7
+                return self.co2, self.temperature, self.humidity
 
+            self.co2 = co2
+            self.temperature = temperature
+            self.humidity = humidity
+            
+            if pressure is not None:
+                self.set_ambient_pressure(pressure)
+                
             # print(f"Measurement read: CO2={co2}, Temperature={temperature}, Humidity={humidity}")
-            return co2, temperature, humidity
+            return self.co2, self.temperature, self.humidity
         else:
             self._error = 6
             print(f"Failed to read measurement, error: {self.get_error_text(self._error)}")
-            return None, None, None
+            return self.co2, self.temperature, self.humidity
 
     def is_data_ready(self) -> bool:
         # print("Checking if data is ready...")
@@ -96,7 +110,7 @@ class SCD41:
     def set_calibration_mode(self, enable_auto_calibration: bool) -> int:
         # print(f"Setting calibration mode to {'auto' if enable_auto_calibration else 'manual'}...")
         self.stop_periodic_measurement()
-        time.sleep_ms(500)
+        time.sleep_us(1)
 
         if enable_auto_calibration != self.get_calibration_mode():
             if enable_auto_calibration:
@@ -117,10 +131,10 @@ class SCD41:
     def reset_eeprom(self) -> int:
         # print("Resetting EEPROM...")
         self.stop_periodic_measurement()
-        time.sleep_ms(500)
+        time.sleep_us(1)
 
         self._command_sequence(0x3632)
-        time.sleep_ms(1200)
+        time.sleep_us(1)
 
         if self._error != 0:
             print(f"EEPROM reset failed with error: {self.get_error_text(self._error)}")
@@ -131,7 +145,7 @@ class SCD41:
             # print("Saving settings to EEPROM...")
             self._command_sequence(0x3615)
             # print("Settings Saved to EEPROM")
-            time.sleep_ms(800)
+            time.sleep_us(1)
         else:
             print("Settings not changed, save command not sent")
 
@@ -184,7 +198,7 @@ class SCD41:
             except OSError as e:
                 last_error = e
                 last_error_code = e.args[0]
-                time.sleep_ms(self.I2C_RETRY_DELAY_MS)
+                time.sleep_us(self.I2C_RETRY_DELAY_uS)
         self._error = last_error_code
         print(f"Failed to write to register {register_address:04X} after {self.I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
 
@@ -200,7 +214,7 @@ class SCD41:
             except OSError as e:
                 last_error = e
                 last_error_code = e.args[0]
-                time.sleep_ms(self.I2C_RETRY_DELAY_MS)
+                time.sleep_us(self.I2C_RETRY_DELAY_uS)
         self._error = last_error_code
         print(f"Failed to read {num_bytes} bytes from address {self.address:02X} after {self.I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
         return b''

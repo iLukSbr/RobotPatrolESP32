@@ -1,7 +1,7 @@
 # Voltage/current sensor INA219
 # https://github.com/chrisb2/pyb_ina219
 
-import utime
+import time
 from math import trunc
 from micropython import const
 from machine import I2C
@@ -232,7 +232,7 @@ class INA219:
         configuration = self._read_configuration()
         self._configuration_register(configuration | 0x0007)
         # 40us delay to recover from powerdown (p14 of spec)
-        utime.sleep_us(40)
+        time.sleep_us(40)
 
     def current_overflow(self):
         """Return true if the sensor has detect current overflow.
@@ -269,7 +269,7 @@ class INA219:
             self._configure_gain(gain)
             # 1ms delay required for new configuration to take effect,
             # otherwise invalid current/power readings can occur.
-            utime.sleep_ms(1)
+            time.sleep_ms(1)
         else:
             # print('Device limit reach, gain cannot be increased')
             raise DeviceRangeError(self.__GAIN_VOLTS[gain], True)

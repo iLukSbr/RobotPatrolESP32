@@ -1,7 +1,7 @@
 # Temperature/air pressure/humidity sensor BME280
 # https://github.com/robert-hh/BME280
 
-import utime
+import time
 from ustruct import unpack
 from array import array
 
@@ -74,7 +74,7 @@ class BME280:
 
         for _ in range(self.BME280_TIMEOUT):
             if self.i2c.readfrom_mem(self.address, self.BME280_REGISTER_STATUS, 1)[0] & 0x08:
-                utime.sleep_ms(10)
+                time.sleep_us(1)
             else:
                 break
         else:

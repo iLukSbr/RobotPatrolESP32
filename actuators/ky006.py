@@ -1,7 +1,7 @@
 # Passive buzzer KY-006
 
 from machine import Pin, PWM
-import utime
+import time
 
 class KY006:
     PIN = 13
@@ -25,9 +25,9 @@ class KY006:
                     # print(f"Alarm {alarm_type} with frequency {freq} Hz for {duration} ms")
                     self.pwm.freq(freq)
                     self.pwm.duty_u16(32767)
-                    utime.sleep_ms(duration)
+                    time.sleep_ms(duration)
                     self.pwm.duty_u16(0)
-                    utime.sleep_ms(100)  # Short pause between syllables
+                    time.sleep_us(1)  # Short pause between syllables
                 self.pwm.freq(1)  # Volta ao estado inicial
                 # print(f"Completed alarm for {alarm_type}")
             else:

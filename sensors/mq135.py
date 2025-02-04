@@ -2,7 +2,7 @@
 # https://github.com/ncdcommunity/Raspberry_Pi_ADC121C_MQ135_Amonia_Gas_Detection_Sensor_Python_Library
 # https://github.com/rubfi/MQ135
 
-import utime
+import time
 from machine import ADC, Pin
 import math
 
@@ -70,7 +70,7 @@ class MQ135:
             self.read_raw_data()
             self.rs_air = self.get_corrected_resistance(temperature, humidity)
             Measure_Ro += self.rs_air
-            utime.sleep(0.1)
+            time.sleep_us(1)
         Measure_Ro = Measure_Ro / self.MQ_SAMPLE_TIME
         Measure_Ro = Measure_Ro / self.MEASURED_RO_IN_CLEAN_AIR
         return Measure_Ro
@@ -81,7 +81,7 @@ class MQ135:
             self.read_raw_data()
             self.rs_air = self.get_corrected_resistance(temperature, humidity)
             Measure_Rs += self.rs_air
-            utime.sleep(0.1)
+            time.sleep_us(1)
         Measure_Rs = Measure_Rs / self.MQ_SAMPLE_TIME
         return Measure_Rs
 
