@@ -19,7 +19,7 @@ while True:
         message = str(co2) + "," + str(temperature) + "," + str(humidity) + "," + str(nh3) + "," + str(flame)
 
         UARTComm_instance.send_message(message)
-        print(f"Sensor data sent.")
+        print("Sensor data sent.")
     
     except Exception as e:
             print(f"Failed to send sensor data: {e}")

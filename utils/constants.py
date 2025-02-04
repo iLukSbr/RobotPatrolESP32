@@ -12,7 +12,18 @@ ENABLE_BME280 = True
 ENABLE_KY006 = True
 ENABLE_DS1302 = True
 ENABLE_KY026 = True
-ENABLE_HCSR04 = True
+ENABLE_HCSR04 = {
+    "front": False,
+    "left": False,
+    "right": False,
+    "rear": False
+}
+ENABLE_HC020K = {
+    "front_left": True,
+    "front_right": True,
+    "rear_left": False,
+    "rear_right": False
+}
 ENABLE_INA219 = True
 ENABLE_L3GD20 = True
 ENABLE_LSM303D = True

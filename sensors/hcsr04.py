@@ -1,4 +1,3 @@
-# Ultrasound distance sensor HC-SR04
 from machine import Pin, time_pulse_us
 import time
 
@@ -7,21 +6,21 @@ class HCSR04:
         self.trig = Pin(trig_pin, Pin.OUT)
         self.echo = Pin(echo_pin, Pin.IN)
         self.trig.off()
-
-    def calcular_mediana(self, valores):
-        valores_ordenados = sorted(valores)
-        n = len(valores_ordenados)
-        meio = n // 2
+        
+    def calculate_median(self, values):
+        sorted_values = sorted(values)
+        n = len(sorted_values)
+        middle = n // 2
 
         if n % 2 == 0:
-            return (valores_ordenados[meio - 1] + valores_ordenados[meio]) / 2
+            return (sorted_values[middle - 1] + sorted_values[middle]) / 2
         else:
-            return valores_ordenados[meio]
+            return sorted_values[middle]
 
-    def medir_mediana(self, leituras=5, timeout=38000):
-        distancias = []
+    def measure_median(self, readings=5, timeout=100000):
+        distances = []
 
-        for _ in range(leituras):
+        for _ in range(readings):
             self.trig.off()
             time.sleep_us(2)
             self.trig.on()
@@ -29,15 +28,23 @@ class HCSR04:
             self.trig.off()
 
             try:
-                duracao = time_pulse_us(self.echo, 1, timeout)
-                distancia = duracao * 0.0343 / 2
-                distancias.append(distancia)
-            except OSError:
-                pass
+                duration = time_pulse_us(self.echo, 1, timeout)
+                if duration < 0:
+                    print(f"Negative duration ({duration} us)")
+                    continue
+                distance = duration * 0.0343 / 2
+                if distance < 0:
+                    print(f"Negative distance ({distance} cm)")
+                distances.append(distance)
+            except OSError as e:
+                print(f"Error: {e}")
 
             time.sleep_ms(50)
 
-        if len(distancias) < 3:
+        if len(distances) < 3:
+            print("Not enough valid readings")
             return None
 
-        return self.calcular_mediana(distancias)
+        median_distance = self.calculate_median(distances)
+        print(f"Median distance: {median_distance} cm")
+        return median_distance

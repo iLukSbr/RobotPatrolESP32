@@ -8,6 +8,8 @@ from machine import I2C
 
 class INA219:
     """Provides all the functionality to interact with the INA219 sensor."""
+    MAX_VOLTAGE = 16.8 # Maximum voltage of the battery
+    MIN_VOLTAGE = 10.0 # Minimum voltage of the battery
     
     SHUNT_OHMS = 0.1
 
@@ -401,12 +403,12 @@ class INA219:
     def battery_percentage(self):
         """Return the battery percentage."""
         voltage = self.voltage()
-        if voltage < 5:
+        if voltage < self.MIN_VOLTAGE:
             return 0
-        elif voltage > 8.4:
+        elif voltage > self.MAX_VOLTAGE:
             return 100
         else:
-            return (voltage - 3.3) / 0.9 * 100
+            return (voltage - self.MIN_VOLTAGE) * 100 / (self.MAX_VOLTAGE - self.MIN_VOLTAGE)
 
 class DeviceRangeError(Exception):
     """This exception is thrown to prevent invalid readings.

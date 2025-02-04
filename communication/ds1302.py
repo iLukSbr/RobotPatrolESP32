@@ -118,7 +118,7 @@ class DS1302:
             self._wr(self.DS1302_REG_YEAR, self._dec2hex(year % 100))
 
     def date_time(self, dat=None):
-        if dat == None:
+        if dat is None:
             return [self.year(), self.month(), self.day(), self.weekday(), self.hour(), self.minute(), self.second()]
         else:
             self.year(dat[0])
