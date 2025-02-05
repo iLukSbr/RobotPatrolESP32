@@ -45,7 +45,7 @@ def main():
             ky006 = KY006(pwm_pin=13)
                 
         if ENABLE_KY026:
-            ky026 = KY026(adc_pin=14)
+            ky026 = KY026(pin=14)
 
         if ENABLE_INA219:
             ina = INA219(i2c)     
