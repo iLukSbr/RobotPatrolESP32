@@ -33,19 +33,19 @@ def main():
         if any(ENABLE_HCSR04.values()):
             hcsr04 = {}
             if ENABLE_HCSR04.get("front", False):
-                hcsr04["front"] = HCSR04(trig_pin=32, echo_pin=36)
+                hcsr04["front"] = HCSR04(trig_pin=26, echo_pin=35)
             if ENABLE_HCSR04.get("left", False):
-                hcsr04["left"] = HCSR04(trig_pin=33, echo_pin=39)
+                hcsr04["left"] = HCSR04(trig_pin=25, echo_pin=34)
             if ENABLE_HCSR04.get("right", False):
-                hcsr04["right"] = HCSR04(trig_pin=25, echo_pin=34)
+                hcsr04["right"] = HCSR04(trig_pin=33, echo_pin=39)
             if ENABLE_HCSR04.get("rear", False):
-                hcsr04["rear"] = HCSR04(trig_pin=26, echo_pin=35)
+                hcsr04["rear"] = HCSR04(trig_pin=32, echo_pin=36)
                 
         if ENABLE_KY006:
-            ky006 = KY006(pwm_pin=13)
+            ky006 = KY006(pin=13)
                 
         if ENABLE_KY026:
-            ky026 = KY026(pin=14)
+            ky026 = KY026(pin=4)
 
         if ENABLE_INA219:
             ina = INA219(i2c)     

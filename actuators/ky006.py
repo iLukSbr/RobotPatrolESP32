@@ -12,8 +12,8 @@ class KY006:
         'nh3': [(600, 300), (700, 300), (600, 300), (500, 300)]  # "am-mo-ni-a"
     }
     
-    def __init__(self, pwm_pin=PIN):
-        self.pwm_pin = pwm_pin
+    def __init__(self, pin=PIN):
+        self.pwm_pin = pin
         self.pwm = PWM(Pin(self.pwm_pin, Pin.OUT), freq=1)
         
     def sound_alarm(self, alarm_type):
