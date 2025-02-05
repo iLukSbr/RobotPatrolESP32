@@ -44,5 +44,5 @@ class HCSR04:
             return None
 
         median_distance = self.calculate_median(distances)
-        print(f"Median distance: {median_distance} cm")
+        # print(f"Median distance: {median_distance} cm")
         return median_distance
