@@ -142,7 +142,10 @@ class BME280:
     def altitude(self):
         from math import pow
         try:
-            p = 44330 * (1.0 - pow(self.read_compensated_data()[1] / self.__sealevel, 0.1903))
+            if self.__sealevel == 0:
+                p = 900.0
+            else:
+                p = 44330 * (1.0 - pow(self.read_compensated_data()[1] / self.__sealevel, 0.1903))
         except:
             p = 0.0
         return p

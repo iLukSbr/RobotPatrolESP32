@@ -15,6 +15,7 @@ class KY006:
     def __init__(self, pin=PIN):
         self.pwm_pin = pin
         self.pwm = PWM(Pin(self.pwm_pin, Pin.OUT), freq=1)
+        self.pwm.duty_u16(0)
         
     def sound_alarm(self, alarm_type):
         try:
@@ -28,7 +29,7 @@ class KY006:
                     time.sleep_ms(duration)
                     self.pwm.duty_u16(0)
                     time.sleep_us(1)  # Short pause between syllables
-                self.pwm.freq(1)  # Volta ao estado inicial
+                self.pwm.freq(1)  # Back to idle frequency
                 # print(f"Completed alarm for {alarm_type}")
             else:
                 raise ValueError("Invalid alarm type")

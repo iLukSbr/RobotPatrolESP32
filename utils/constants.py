@@ -3,7 +3,7 @@ I2C_SCL_PIN = 22
 I2C_SDA_PIN = 21
 I2C_FREQ = 115200
 
-NH3_THRESHOLD = 2.88
+NH3_THRESHOLD = 2.9
 CO2_THRESHOLD = 1000
 
 # Flags to enable/disable components
@@ -16,13 +16,13 @@ ENABLE_HCSR04 = {
     "front": True,
     "left": True,
     "right": True,
-    "rear": False
+    "rear": True
 }
 ENABLE_HC020K = {
     "front_left": True,
     "front_right": True,
-    "rear_left": False,
-    "rear_right": False
+    "rear_left": True,
+    "rear_right": True
 }
 ENABLE_INA219 = True
 ENABLE_L3GD20 = True

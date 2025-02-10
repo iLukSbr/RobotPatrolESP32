@@ -1,6 +1,5 @@
 from machine import I2C, Pin
 import time
-import sys
 
 from actuators import KY006
 from communication import DS1302, UARTComm, JSONParser
@@ -22,13 +21,13 @@ def main():
         if any(ENABLE_HC020K.values()):
             hc020k = {}
             if ENABLE_HC020K.get("front_left", False):
-                hc020k["front_left"] = HC020K(pin=14)
+                hc020k["front_left"] = HC020K(pin=14, interrupt_type=Pin.IRQ_RISING)
             if ENABLE_HC020K.get("front_right", False):
-                hc020k["front_right"] = HC020K(pin=15)
+                hc020k["front_right"] = HC020K(pin=15, interrupt_type=Pin.IRQ_RISING)
             if ENABLE_HC020K.get("rear_left", False):
-                hc020k["rear_left"] = HC020K(pin=5)
+                hc020k["rear_left"] = HC020K(pin=5, interrupt_type=Pin.IRQ_RISING)
             if ENABLE_HC020K.get("rear_right", False):
-                hc020k["rear_right"] = HC020K(pin=2)
+                hc020k["rear_right"] = HC020K(pin=2, interrupt_type=Pin.IRQ_FALLING)
             
         if any(ENABLE_HCSR04.values()):
             hcsr04 = {}

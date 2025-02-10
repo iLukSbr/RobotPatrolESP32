@@ -8,7 +8,7 @@ class SCD41:
     SCD41_I2C_ADDRESS = 0x62
     I2C_RETRY_COUNT = 1000
     I2C_RETRY_DELAY_uS = 1
-    
+    CO2_OFFSET = -140
     co2 = 0
     temperature = 0
     humidity = 0
@@ -78,7 +78,7 @@ class SCD41:
         data = self._read_bytes(9)
 
         if len(data) == 9:
-            co2 = (data[0] << 8) | data[1]
+            co2 = ((data[0] << 8) | data[1]) + self.CO2_OFFSET
             temperature = -45 + 175 * ((data[3] << 8) | data[4]) / 65536
             humidity = 100 * ((data[6] << 8) | data[7]) / 65536
 

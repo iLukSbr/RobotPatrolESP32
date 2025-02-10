@@ -10,6 +10,7 @@ class INA219:
     """Provides all the functionality to interact with the INA219 sensor."""
     MAX_VOLTAGE = 16.8 # Maximum voltage of the battery
     MIN_VOLTAGE = 10.0 # Minimum voltage of the battery
+    OFFSET_VOLTAGE = -3.7 # Offset to adjust the battery voltage
     
     SHUNT_OHMS = 0.1
 
@@ -187,8 +188,10 @@ class INA219:
 
     def voltage(self):
         """Return the bus voltage in volts."""
-        value = self._voltage_register()
-        return float(value) * self.__BUS_MILLIVOLTS_LSB / 1000
+        value = (float(self._voltage_register()) * self.__BUS_MILLIVOLTS_LSB / 1000) + self.OFFSET_VOLTAGE
+        if value < 0:
+            return 0
+        return value
 
     def supply_voltage(self):
         """Return the bus supply voltage in volts.
@@ -204,7 +207,10 @@ class INA219:
         A DeviceRangeError exception is thrown if current overflow occurs.
         """
         self._handle_current_overflow()
-        return self._current_register() * self._current_lsb * 1000
+        value = self._current_register() * self._current_lsb * 1000
+        if value < 0:
+            return 0
+        return value
 
     def power(self):
         """Return the bus power consumption in milliwatts.
@@ -212,7 +218,10 @@ class INA219:
         A DeviceRangeError exception is thrown if current overflow occurs.
         """
         self._handle_current_overflow()
-        return self._power_register() * self._power_lsb * 1000
+        value = self._power_register() * self._power_lsb * 1000
+        if value < 0:
+            return 0
+        return value
 
     def shunt_voltage(self):
         """Return the shunt voltage in millivolts.
