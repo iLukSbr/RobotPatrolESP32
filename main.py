@@ -64,6 +64,7 @@ def main():
         if ENABLE_UART_COMM:
             comm = UARTComm(tx_pin=17, rx_pin=16)
             json_parser = JSONParser()
+            
     except Exception as e:
         error_print(f"An error occurred during initialization: {e}")
 
@@ -141,10 +142,13 @@ def main():
                     error_print(f"Error reading KY026: {e}")
             
             if ENABLE_MQ135:
+                raw_nh3 = mq135.read_raw_data()
+                info_print(f"[{datetime_str}] Raw MQ135 ADC: {raw_nh3}")
+                json_parser.add_data("raw_nh3", raw_nh3)
                 try:
                     co2, nh3 = mq135.get_gas_concentrations(temp, humidity)
                     if nh3['nh3'] is not None:
-                        info_print(f"[{datetime_str}] MQ131 - Ammonia (NH3) concentration: {nh3['nh3']:.3f} ppm")
+                        info_print(f"[{datetime_str}] MQ135 - Ammonia (NH3) concentration: {nh3['nh3']:.3f} ppb")
                         json_parser.add_data("nh3", nh3['nh3'])
                         if nh3['nh3'] > NH3_THRESHOLD:
                             if ENABLE_KY006:
@@ -154,7 +158,7 @@ def main():
                             json_parser.add_data("nh3_alarm", False)
                 except Exception as e:
                     error_print(f"Error reading MQ135 data: {e}")
-
+            
             if ENABLE_L3GD20:
                 try:
                     gyro_data = l3gd20.gyro

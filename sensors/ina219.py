@@ -188,7 +188,14 @@ class INA219:
 
     def voltage(self):
         """Return the bus voltage in volts."""
-        value = (float(self._voltage_register()) * self.__BUS_MILLIVOLTS_LSB / 1000) + self.OFFSET_VOLTAGE
+        value = (float(self._voltage_register()) * self.__BUS_MILLIVOLTS_LSB / 1000)
+        if value <= self.MIN_VOLTAGE - self.OFFSET_VOLTAGE:
+            offset = self.OFFSET_VOLTAGE
+        elif value >= self.MAX_VOLTAGE:
+            offset = 0
+        else:
+            offset = self.OFFSET_VOLTAGE * (self.MAX_VOLTAGE - value) / (self.MAX_VOLTAGE - self.MIN_VOLTAGE - self.OFFSET_VOLTAGE)
+        value += offset
         if value < 0:
             return 0
         return value

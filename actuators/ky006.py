@@ -19,7 +19,7 @@ class KY006:
         
     def sound_alarm(self, alarm_type):
         try:
-            print(f"Danger alarm activated: {alarm_type}")            
+            print(f"Danger alarm activated: {alarm_type}")
             if alarm_type in self.PATTERNS:
                 pattern = self.PATTERNS[alarm_type]
                 for freq, duration in pattern:

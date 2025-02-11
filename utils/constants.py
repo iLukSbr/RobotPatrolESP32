@@ -3,7 +3,7 @@ I2C_SCL_PIN = 22
 I2C_SDA_PIN = 21
 I2C_FREQ = 115200
 
-NH3_THRESHOLD = 2.9
+NH3_THRESHOLD = 80
 CO2_THRESHOLD = 1000
 
 # Flags to enable/disable components

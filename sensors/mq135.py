@@ -11,6 +11,7 @@ class MQ135:
     MEASURE_RL = 20.0
     MQ_SAMPLE_TIME = 5
     MEASURED_RO_IN_CLEAN_AIR = 3.7
+    NH3_OFFSET = -2.8 # Offset para NH3 em ppm
 
     # Pino ADC do ESP32
     ADC_PIN = 27
@@ -45,6 +46,7 @@ class MQ135:
     def read_raw_data(self):
         """Lê o valor bruto do ADC"""
         self.raw_adc = self.sensor.read()
+        return self.raw_adc
 
     def get_correction_factor(self, temperature, humidity):
         """Calcula o fator de correção para temperatura do ar ambiente e umidade relativa"""
@@ -97,16 +99,16 @@ class MQ135:
         ppm = math.exp(((math.log(self.ratio, 10)) - b) / a)
         return {'co2': ppm}
 
-    def calculate_ppm_NH3(self, temperature, humidity):
+    def calculate_ppb_NH3(self, temperature, humidity):
         """Calcula a concentração final de NH3 corrigida para temperatura/umidade"""
         self.measure_ratio(temperature, humidity)
         a = -0.41
         b = 1.0
-        ppm = math.exp(((math.log(self.ratio, 10)) - b) / a)
-        return {'nh3': ppm}
+        ppb = (math.exp(((math.log(self.ratio, 10)) - b) / a) + self.NH3_OFFSET) * 1000
+        return {'nh3': ppb}
 
     def get_gas_concentrations(self, temperature, humidity):
         """Obtém as concentrações de gases corrigidas para temperatura e umidade"""
         co2 = self.calculate_ppm_CO2(temperature, humidity)
-        nh3 = self.calculate_ppm_NH3(temperature, humidity)
+        nh3 = self.calculate_ppb_NH3(temperature, humidity)
         return co2, nh3
