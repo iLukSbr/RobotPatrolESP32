@@ -41,7 +41,7 @@ class HCSR04:
             time.sleep_ms(50)
 
         if len(distances) < 3:
-            return None
+            return -1
 
         median_distance = self.calculate_median(distances)
         # print(f"Median distance: {median_distance} cm")

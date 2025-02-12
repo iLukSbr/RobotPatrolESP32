@@ -57,12 +57,14 @@ class MQ135:
     def get_resistance(self):
         """Retorna a resistência do sensor em kOhms"""
         self.read_raw_data()
-        if self.raw_adc == 0:
-            return -1
-        return (4095. / self.raw_adc - 1.) * self.RLOAD
+        if self.raw_adc <= 1.0:
+            return 0
+        return (4096. / self.raw_adc - 1.) * self.RLOAD
 
     def get_corrected_resistance(self, temperature, humidity):
         """Obtém a resistência do sensor corrigida para temperatura/umidade"""
+        if self.get_correction_factor(temperature, humidity) <= 0.0:
+            return self.get_resistance()
         return self.get_resistance() / self.get_correction_factor(temperature, humidity)
 
     def measure_Ro(self, temperature, humidity):
@@ -88,6 +90,8 @@ class MQ135:
         return Measure_Rs
 
     def measure_ratio(self, temperature, humidity):
+        if self.measure_Ro(temperature, humidity) <= 0.0:
+            self.ratio = self.measure_Rs(temperature, humidity)
         self.ratio = self.measure_Rs(temperature, humidity) / self.measure_Ro(temperature, humidity)
         # print("Ratio = {:.3f}".format(self.ratio))
 
