@@ -1,7 +1,7 @@
 """
-Módulo de Sensores
+Sensor Module
 ==================
-Este módulo contém drivers para sensores.
+This module contains sensor drivers.
 """
 
 from .bme280 import BME280

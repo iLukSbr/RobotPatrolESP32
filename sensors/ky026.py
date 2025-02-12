@@ -13,5 +13,5 @@ class KY026:
     def is_flame_detected(self):
         sensor_value = self.sensor.read()
         # print(f"Reading flame sensor: {sensor_value}")
-        return self.sensor.read() > self.threshold  # Verifica se o valor lido é menor que o limiar
+        return self.sensor.read() > self.threshold  # Verifies if value read is greater than threshold
     

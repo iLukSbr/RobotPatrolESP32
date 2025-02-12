@@ -7,24 +7,24 @@ from machine import ADC, Pin
 import math
 
 class MQ135:
-    # Configurações do sensor MQ135
+    # MQ135 configuration
     MEASURE_RL = 20.0
     MQ_SAMPLE_TIME = 5
     MEASURED_RO_IN_CLEAN_AIR = 3.7
-    NH3_OFFSET = -2.8 # Offset para NH3 em ppm
+    NH3_OFFSET = -2.8 # NH3 offset in ppm
 
-    # Pino ADC do ESP32
+    # ESP32 ADC pin
     ADC_PIN = 27
     
-    # A resistência de carga na placa
+    # Load resistance on the board
     RLOAD = 10.0
-    # Resistência de calibração no nível de CO2 atmosférico
+    # CO2 resistance in clean air
     RZERO = 76.63
-    # Parâmetros para calcular ppm de CO2 a partir da resistência do sensor
+    # CO2 parameters for calibration
     PARA = 116.6020682
     PARB = 2.769034857
 
-    # Parâmetros para modelar a dependência de temperatura e umidade
+    # Humidity and temperature correction factors
     CORA = 0.00035
     CORB = 0.02718
     CORC = 1.39538
@@ -33,42 +33,42 @@ class MQ135:
     CORF = -0.001923077
     CORG = 1.130128205
 
-    # Nível de CO2 atmosférico para fins de calibração
+    # CO2 atmospheric concentration for calibration
     ATMOCO2 = 397.13
 
     def __init__(self, adc_pin=ADC_PIN):
         self.sensor = ADC(Pin(adc_pin, Pin.IN))
-        self.sensor.atten(ADC.ATTN_11DB)  # Configura a atenuação para ler o valor completo de 0-3.3V
+        self.sensor.atten(ADC.ATTN_11DB)  # Configures the ADC to read from 0 to 3.3V
         self.raw_adc = 0
         self.rs_air = 0
         self.ratio = 0
 
     def read_raw_data(self):
-        """Lê o valor bruto do ADC"""
+        """Reads the raw data from the sensor"""
         self.raw_adc = self.sensor.read()
         return self.raw_adc
 
     def get_correction_factor(self, temperature, humidity):
-        """Calcula o fator de correção para temperatura do ar ambiente e umidade relativa"""
+        """Calculates the correction factor for temperature and humidity"""
         if temperature < 20:
             return self.CORA * temperature * temperature - self.CORB * temperature + self.CORC - (humidity - 33.) * self.CORD
         return self.CORE * temperature + self.CORF * humidity + self.CORG
 
     def get_resistance(self):
-        """Retorna a resistência do sensor em kOhms"""
+        """Returns the resistance of the sensor"""
         self.read_raw_data()
         if self.raw_adc <= 1.0:
             return 0
         return (4096. / self.raw_adc - 1.) * self.RLOAD
 
     def get_corrected_resistance(self, temperature, humidity):
-        """Obtém a resistência do sensor corrigida para temperatura/umidade"""
+        """Obtains the corrected resistance of the sensor"""
         if self.get_correction_factor(temperature, humidity) <= 0.0:
             return self.get_resistance()
         return self.get_resistance() / self.get_correction_factor(temperature, humidity)
 
     def measure_Ro(self, temperature, humidity):
-        """Calcula a razão Rs/Ro a partir da resistência Rs & Ro"""
+        """Calculates the resistance of the sensor in clean air"""
         Measure_Ro = 0.0
         for _ in range(self.MQ_SAMPLE_TIME):
             self.read_raw_data()
@@ -96,7 +96,7 @@ class MQ135:
         # print("Ratio = {:.3f}".format(self.ratio))
 
     def calculate_ppm_CO2(self, temperature, humidity):
-        """Calcula a concentração final de CO2 corrigida para temperatura/umidade"""
+        """Calculates the final concentration of CO2 corrected for temperature/humidity"""
         self.measure_ratio(temperature, humidity)
         a = -0.32
         b = 1.0
@@ -104,7 +104,7 @@ class MQ135:
         return {'co2': ppm}
 
     def calculate_ppb_NH3(self, temperature, humidity):
-        """Calcula a concentração final de NH3 corrigida para temperatura/umidade"""
+        """Calculates the final concentration of NH3 corrected for temperature/humidity"""
         self.measure_ratio(temperature, humidity)
         a = -0.41
         b = 1.0
@@ -112,7 +112,7 @@ class MQ135:
         return {'nh3': ppb}
 
     def get_gas_concentrations(self, temperature, humidity):
-        """Obtém as concentrações de gases corrigidas para temperatura e umidade"""
+        """Obtains the final concentrations of CO2 and NH3 corrected for temperature/humidity"""
         co2 = self.calculate_ppm_CO2(temperature, humidity)
         nh3 = self.calculate_ppb_NH3(temperature, humidity)
         return co2, nh3

@@ -1,7 +1,7 @@
 """
-Módulo de Comunicação
+Communication Module
 =====================
-Este módulo contém drivers e formatadores para comunicação UART usados no projeto.
+This module contains drivers and formatters for UART communication.
 """
 
 from .ds1302 import DS1302

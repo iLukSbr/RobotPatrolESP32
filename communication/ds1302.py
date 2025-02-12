@@ -137,3 +137,4 @@ class DS1302:
 
     def weekday_string(self, weekday):
         return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][weekday]
+    
