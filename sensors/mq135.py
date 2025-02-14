@@ -113,6 +113,17 @@ class MQ135:
 
     def get_gas_concentrations(self, temperature, humidity):
         """Obtains the final concentrations of CO2 and NH3 corrected for temperature/humidity"""
-        co2 = self.calculate_ppm_CO2(temperature, humidity)
-        nh3 = self.calculate_ppb_NH3(temperature, humidity)
-        return co2, nh3
+        co2_values = []
+        nh3_values = []
+        for _ in range(10):
+            co2_values.append(self.calculate_ppm_CO2(temperature, humidity)['co2'])
+            nh3_values.append(self.calculate_ppb_NH3(temperature, humidity)['nh3'])
+            time.sleep_ms(10)  # Small delay between measurements
+
+        co2_values.sort()
+        nh3_values.sort()
+
+        median_co2 = co2_values[len(co2_values) // 2]
+        median_nh3 = nh3_values[len(nh3_values) // 2]
+
+        return median_co2, median_nh3
