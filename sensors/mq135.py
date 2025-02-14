@@ -101,7 +101,7 @@ class MQ135:
         a = -0.32
         b = 1.0
         ppm = math.exp(((math.log(self.ratio, 10)) - b) / a)
-        return {'co2': ppm}
+        return ppm
 
     def calculate_ppb_NH3(self, temperature, humidity):
         """Calculates the final concentration of NH3 corrected for temperature/humidity"""
@@ -109,16 +109,16 @@ class MQ135:
         a = -0.41
         b = 1.0
         ppb = (math.exp(((math.log(self.ratio, 10)) - b) / a) + self.NH3_OFFSET) * 1000
-        return {'nh3': ppb}
+        return ppb
 
     def get_gas_concentrations(self, temperature, humidity):
         """Obtains the final concentrations of CO2 and NH3 corrected for temperature/humidity"""
         co2_values = []
         nh3_values = []
-        for _ in range(10):
-            co2_values.append(self.calculate_ppm_CO2(temperature, humidity)['co2'])
-            nh3_values.append(self.calculate_ppb_NH3(temperature, humidity)['nh3'])
-            time.sleep_ms(10)  # Small delay between measurements
+        for _ in range(20):
+            co2_values.append(self.calculate_ppm_CO2(temperature, humidity))
+            nh3_values.append(self.calculate_ppb_NH3(temperature, humidity))
+            time.sleep_ms(40)  # Small delay between measurements
 
         co2_values.sort()
         nh3_values.sort()

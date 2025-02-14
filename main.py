@@ -147,10 +147,10 @@ def main():
                 json_parser.add_data("raw_nh3", raw_nh3)
                 try:
                     co2, nh3 = mq135.get_gas_concentrations(temp, humidity)
-                    if nh3['nh3'] is not None:
-                        info_print(f"[{datetime_str}] MQ135 - Ammonia (NH3) concentration: {nh3['nh3']:.3f} ppb")
-                        json_parser.add_data("nh3", nh3['nh3'])
-                        if nh3['nh3'] > NH3_THRESHOLD:
+                    if nh3 is not None:
+                        info_print(f"[{datetime_str}] MQ135 - Ammonia (NH3) concentration: {nh3:.3f} ppb")
+                        json_parser.add_data("nh3", nh3)
+                        if nh3 > NH3_THRESHOLD:
                             if ENABLE_KY006:
                                 ky006.sound_alarm('nh3')
                             json_parser.add_data("nh3_alarm", True)
