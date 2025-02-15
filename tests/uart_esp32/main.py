@@ -15,4 +15,4 @@ def uart_listener_writer(tx_pin, rx_pin, baudrate):
         time.sleep(1)
 
 if __name__ == "__main__":
-    uart_listener_writer(tx_pin=17, rx_pin=16, baudrate=115200)
+    uart_listener_writer(tx_pin=17, rx_pin=16, baudrate=9600)

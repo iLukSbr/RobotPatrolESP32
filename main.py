@@ -8,9 +8,10 @@ from sensors import BME280, HC020K, HCSR04, INA219, KY026, L3GD20, LSM303, MQ135
 
 def main():
     try:
+        json_parser = JSONParser()
+        
         if ENABLE_UART_COMM:
-            comm = UARTComm(tx_pin=17, rx_pin=16)
-            json_parser = JSONParser()
+            comm = UARTComm(tx_pin=17, rx_pin=16, baudrate=UART_BAUD_RATE, timeout=UART_TIMEOUT)
             
         if ENABLE_DS1302:
             ds1302 = DS1302(clk=23, dat=18, rst=19)
@@ -271,11 +272,10 @@ def main():
             if ENABLE_UART_COMM:
                 if message:
                     comm.send_message(message)
-                comm.read_serial()
-                
-            json_parser.clear_json_message()
             
-            time.sleep_us(1)
+            time.sleep_ms(100)
+            
+            json_parser.clear_json_message()
             
         except Exception as e:
             error_print(f"An error occurred: {e}")
