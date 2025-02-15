@@ -226,3 +226,6 @@ class SCD41:
         if self._error != 0:
             print(f"Setting ambient pressure failed with error: {self.get_error_text(self._error)}")
         return self._error
+
+    def get_i2c_address(self):
+        return self.SCD41_I2C_ADDRESS

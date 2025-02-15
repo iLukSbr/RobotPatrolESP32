@@ -7,10 +7,10 @@ NH3_THRESHOLD = 80
 CO2_THRESHOLD = 1000
 
 # Flags to enable/disable components
-ENABLE_I2C = True
+ENABLE_I2C = False
 ENABLE_BME280 = True
 ENABLE_KY006 = True
-ENABLE_DS1302 = True
+ENABLE_DS1302 = False
 ENABLE_KY026 = True
 ENABLE_HCSR04 = {
     "front": True,

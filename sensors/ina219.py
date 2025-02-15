@@ -425,6 +425,10 @@ class INA219:
             return 100
         else:
             return (voltage - self.MIN_VOLTAGE) * 100 / (self.MAX_VOLTAGE - self.MIN_VOLTAGE)
+        
+    def get_i2c_address(self):
+        """Return the I2C address."""
+        return self.__ADDRESS
 
 class DeviceRangeError(Exception):
     """This exception is thrown to prevent invalid readings.

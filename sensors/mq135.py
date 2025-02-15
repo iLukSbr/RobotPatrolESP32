@@ -12,6 +12,10 @@ class MQ135:
     MQ_SAMPLE_TIME = 5
     MEASURED_RO_IN_CLEAN_AIR = 3.7
     NH3_OFFSET = -2.8 # NH3 offset in ppm
+    
+    # Standard conditions for temperature and humidity
+    CNTP_TEMPERATURE = 20.0
+    CNTP_HUMIDITY = 65.0
 
     # ESP32 ADC pin
     ADC_PIN = 27
@@ -63,9 +67,10 @@ class MQ135:
 
     def get_corrected_resistance(self, temperature, humidity):
         """Obtains the corrected resistance of the sensor"""
-        if self.get_correction_factor(temperature, humidity) <= 0.0:
+        correction_factor = self.get_correction_factor(temperature, humidity)
+        if correction_factor <= 0.0:
             return self.get_resistance()
-        return self.get_resistance() / self.get_correction_factor(temperature, humidity)
+        return self.get_resistance() / correction_factor
 
     def measure_Ro(self, temperature, humidity):
         """Calculates the resistance of the sensor in clean air"""
@@ -81,6 +86,7 @@ class MQ135:
 
     def measure_Rs(self, temperature, humidity):
         Measure_Rs = 0.0
+        self.rs_air = 0.0
         for _ in range(self.MQ_SAMPLE_TIME):
             self.read_raw_data()
             self.rs_air = self.get_corrected_resistance(temperature, humidity)
@@ -92,7 +98,11 @@ class MQ135:
     def measure_ratio(self, temperature, humidity):
         if self.measure_Ro(temperature, humidity) <= 0.0:
             self.ratio = self.measure_Rs(temperature, humidity)
-        self.ratio = self.measure_Rs(temperature, humidity) / self.measure_Ro(temperature, humidity)
+        Measure_Ro = self.measure_Ro(temperature, humidity)
+        if Measure_Ro <= 0.0:
+            self.ratio = self.measure_Rs(temperature, humidity)
+        else:
+            self.ratio = self.measure_Rs(temperature, humidity) / Measure_Ro
         # print("Ratio = {:.3f}".format(self.ratio))
 
     def calculate_ppm_CO2(self, temperature, humidity):
@@ -100,6 +110,8 @@ class MQ135:
         self.measure_ratio(temperature, humidity)
         a = -0.32
         b = 1.0
+        if self.ratio <= 0.0:
+            return 0.0
         ppm = math.exp(((math.log(self.ratio, 10)) - b) / a)
         return ppm
 
@@ -108,10 +120,12 @@ class MQ135:
         self.measure_ratio(temperature, humidity)
         a = -0.41
         b = 1.0
+        if self.ratio <= 0.0:
+            return 0.0
         ppb = (math.exp(((math.log(self.ratio, 10)) - b) / a) + self.NH3_OFFSET) * 1000
         return ppb
 
-    def get_gas_concentrations(self, temperature, humidity):
+    def get_gas_concentrations(self, temperature=CNTP_TEMPERATURE, humidity=CNTP_HUMIDITY):
         """Obtains the final concentrations of CO2 and NH3 corrected for temperature/humidity"""
         co2_values = []
         nh3_values = []

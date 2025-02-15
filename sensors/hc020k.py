@@ -29,8 +29,8 @@ class HC020K:
 
     def _calculate_speed(self, timer):
         current_time = time.ticks_ms()
-        elapsed_time = time.ticks_diff(current_time, self.last_time) / 1000  # Convert to seconds
-        if (elapsed_time == 0):
+        elapsed_time = (current_time - self.last_time) / 1000  # Convert to seconds
+        if (elapsed_time <= 0):
             elapsed_time = 1 / 1000  # Avoid division by zero
         self.last_time = current_time
 
@@ -40,13 +40,13 @@ class HC020K:
 
         # Calculate distance traveled in cm
         circumference_cm = self.wheel_diameter * 3.14159
+        self.speed_cmps = self.speed_rps * circumference_cm
         self.distance_traveled_cm += self.speed_rps * circumference_cm * elapsed_time
 
     def get_speed_cmps(self):
-        # Convert speed from RPS to km/h
-        circumference_cm = self.wheel_diameter * 3.14159
-        speed_cm_per_sec = self.speed_rps * circumference_cm
-        return speed_cm_per_sec
+        self._calculate_speed(self.timer)
+        return self.speed_cmps
     
     def get_distance_traveled_m(self):
+        self._calculate_speed(self.timer)
         return self.distance_traveled_cm / 100

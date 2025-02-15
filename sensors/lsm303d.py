@@ -131,3 +131,8 @@ class LSM303:
             mag_raw[1] / self._lsb_per_gauss_z * self.GAUSS_TO_MICROTESLA
         )
         
+    def get_accel_i2c_address(self):
+        return self.LSM303_ADDRESS_ACCEL
+    
+    def get_mag_i2c_address(self):
+        return self.LSM303_ADDRESS_MAG

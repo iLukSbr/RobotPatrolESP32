@@ -8,13 +8,10 @@ from sensors import BME280, HC020K, HCSR04, INA219, KY026, L3GD20, LSM303, MQ135
 
 def main():
     try:
-        if ENABLE_I2C:
-            i2c = I2C(0, scl=Pin(I2C_SCL_PIN), sda=Pin(I2C_SDA_PIN), freq=I2C_FREQ)
-            print("I2C devices found: ", [hex(device) for device in i2c.scan()])
-        
-        if ENABLE_BME280:
-            bme = BME280(i2c)
-
+        if ENABLE_UART_COMM:
+            comm = UARTComm(tx_pin=17, rx_pin=16)
+            json_parser = JSONParser()
+            
         if ENABLE_DS1302:
             ds1302 = DS1302(clk=23, dat=18, rst=19)
             
@@ -45,25 +42,78 @@ def main():
                 
         if ENABLE_KY026:
             ky026 = KY026(pin=4)
-
-        if ENABLE_INA219:
-            ina = INA219(i2c)     
-
-        if ENABLE_L3GD20:
-            l3gd20 = L3GD20(i2c)
-
-        if ENABLE_LSM303D:
-            lsm303d = LSM303(i2c)
-        
+            
         if ENABLE_MQ135:
             mq135 = MQ135(adc_pin=27)
-            
-        if ENABLE_SCD41:
-            scd41 = SCD41(i2c)
+        
+        if ENABLE_I2C:
+            i2c = I2C(0, scl=Pin(I2C_SCL_PIN), sda=Pin(I2C_SDA_PIN), freq=I2C_FREQ)
+            devices = i2c.scan()
+            while True:
+                if devices:
+                    print("I2C devices found: ", [hex(device) for device in devices])
+                    break
+                else:
+                    print("No I2C devices found, retrying...")
+                    time.sleep(1)
+                    devices = i2c.scan()
+        
+            if ENABLE_BME280:
+                while True:
+                    if BME280.get_i2c_address() in devices:
+                        break
+                    else:
+                        print("BME280 barometer/thermometer/hygrometer not found, retrying...")
+                        time.sleep(1)
+                        devices = i2c.scan()
+                bme = BME280(i2c)
 
-        if ENABLE_UART_COMM:
-            comm = UARTComm(tx_pin=17, rx_pin=16)
-            json_parser = JSONParser()
+            if ENABLE_INA219:
+                while True:
+                    if INA219.get_i2c_address() in devices:
+                        break
+                    else:
+                        print("INA219 multimeter not found, retrying...")
+                        time.sleep(1)
+                        devices = i2c.scan()
+                ina = INA219(i2c)     
+
+            if ENABLE_L3GD20:
+                while True:
+                    if L3GD20.get_i2c_address() in devices:
+                        break
+                    else:
+                        print("L3GD20 magnetometer not found, retrying...")
+                        time.sleep(1)
+                        devices = i2c.scan()
+                l3gd20 = L3GD20(i2c)
+
+            if ENABLE_LSM303D:
+                while True:
+                    if LSM303.get_accel_i2c_address() in devices:
+                        break
+                    else:
+                        print("LSM303D accelerometer not found, retrying...")
+                        time.sleep(1)
+                        devices = i2c.scan()
+                while True:
+                    if LSM303.get_mag_i2c_address() in devices:
+                        break
+                    else:
+                        print("LSM303D magnetometer not found, retrying...")
+                        time.sleep(1)
+                        devices = i2c.scan()
+                lsm303d = LSM303(i2c)
+            
+            if ENABLE_SCD41:
+                while True:
+                    if SCD41.get_i2c_address() in devices:
+                        break
+                    else:
+                        print("SCD41 CO2 sensor not found, retrying...")
+                        time.sleep(1)
+                        devices = i2c.scan()
+                scd41 = SCD41(i2c)
             
     except Exception as e:
         error_print(f"An error occurred during initialization: {e}")
@@ -79,9 +129,9 @@ def main():
                 except Exception as e:
                     error_print(f"Error reading DS1302 data: {e}")
             else:
-                datetime_str = ""
+                datetime_str = time.ticks_ms() / 60000
 
-            if ENABLE_BME280:
+            if ENABLE_BME280 and ENABLE_I2C:
                 try:
                     temp, pressure, humidity = bme.read_compensated_data()
                     if pressure is not None:
@@ -93,7 +143,16 @@ def main():
                         json_parser.add_data("humidity", humidity)
                 except Exception as e:
                     error_print(f"Error reading BME280 data: {e}")
-                
+                    temp = None
+                    pressure = None
+                    pressure_hpa = None
+                    humidity = None
+            else:
+                temp = None
+                pressure = None
+                pressure_hpa = None
+                humidity = None
+            
             if any(ENABLE_HC020K.values()):
                 try:
                     for key, sensor in hc020k.items():
@@ -118,7 +177,7 @@ def main():
                 except Exception as e:
                     error_print(f"Error reading HCSR04 data: {e}")
             
-            if ENABLE_INA219:
+            if ENABLE_INA219 and ENABLE_I2C:
                 try:
                     json_parser.add_data("bus_voltage", ina.voltage())
                     json_parser.add_data("current", ina.current())
@@ -146,7 +205,10 @@ def main():
                 info_print(f"[{datetime_str}] Raw MQ135 ADC: {raw_nh3}")
                 json_parser.add_data("raw_nh3", raw_nh3)
                 try:
-                    co2, nh3 = mq135.get_gas_concentrations(temp, humidity)
+                    if temp is not None and humidity is not None:
+                        co2, nh3 = mq135.get_gas_concentrations(temp, humidity)
+                    else:
+                        co2, nh3 = mq135.get_gas_concentrations()
                     if nh3 is not None:
                         info_print(f"[{datetime_str}] MQ135 - Ammonia (NH3) concentration: {nh3:.3f} ppb")
                         json_parser.add_data("nh3", nh3)
@@ -159,7 +221,7 @@ def main():
                 except Exception as e:
                     error_print(f"Error reading MQ135 data: {e}")
             
-            if ENABLE_L3GD20:
+            if ENABLE_L3GD20 and ENABLE_I2C:
                 try:
                     gyro_data = l3gd20.gyro
                     json_parser.add_data("gyroscope.x", gyro_data[0])
@@ -169,7 +231,7 @@ def main():
                 except Exception as e:
                     error_print(f"Error reading L3GD20: {e}")
                 
-            if ENABLE_LSM303D:
+            if ENABLE_LSM303D and ENABLE_I2C:
                 try:
                     accel_data = lsm303d.read_accel()
                     mag_data = lsm303d.read_mag()
@@ -183,9 +245,9 @@ def main():
                 except Exception as e:
                     error_print(f"Error reading LSM303D: {e}")
                     
-            if ENABLE_SCD41:
+            if ENABLE_SCD41 and ENABLE_I2C:
                 try:
-                    if ENABLE_BME280 and pressure is not None:
+                    if ENABLE_BME280 and pressure_hpa is not None:
                         co2_scd41, t_scd41, rh_scd41 = scd41.read_measurement(int(pressure_hpa))
                     else:
                         co2_scd41, t_scd41, rh_scd41 = scd41.read_measurement()

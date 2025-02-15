@@ -171,3 +171,6 @@ class L3GD20:
     def set_int1_duration(self, value: int) -> None:
         'Set INT1 duration register'
         self.write_register(self.L3GD20_REGISTER_INT1_DURATION, value)
+        
+    def get_i2c_address(self):
+        return self.L3GD20_ADDRESS
