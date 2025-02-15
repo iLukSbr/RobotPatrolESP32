@@ -55,7 +55,13 @@ def main():
                     print("I2C devices found: ", [hex(device) for device in devices])
                     break
                 else:
-                    print("No I2C devices found, retrying...")
+                    json_parser.add_data("error", "No I2C devices found")
+                    message = json_parser.get_json_message()
+                    info_print(f"JSON message: {message}") 
+                    if ENABLE_UART_COMM:
+                        if message:
+                            comm.send_message(message)
+                    json_parser.clear_json_message()
                     time.sleep(1)
                     devices = i2c.scan()
         
@@ -64,7 +70,13 @@ def main():
                     if BME280.get_i2c_address() in devices:
                         break
                     else:
-                        print("BME280 barometer/thermometer/hygrometer not found, retrying...")
+                        json_parser.add_data("error", "BME280 barometer/thermometer/hygrometer not found")
+                        message = json_parser.get_json_message()
+                        info_print(f"JSON message: {message}") 
+                        if ENABLE_UART_COMM:
+                            if message:
+                                comm.send_message(message)
+                        json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 bme = BME280(i2c)
@@ -74,7 +86,13 @@ def main():
                     if INA219.get_i2c_address() in devices:
                         break
                     else:
-                        print("INA219 multimeter not found, retrying...")
+                        json_parser.add_data("error", "INA219 multimeter not found")
+                        message = json_parser.get_json_message()
+                        info_print(f"JSON message: {message}") 
+                        if ENABLE_UART_COMM:
+                            if message:
+                                comm.send_message(message)
+                        json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 ina = INA219(i2c)     
@@ -84,7 +102,13 @@ def main():
                     if L3GD20.get_i2c_address() in devices:
                         break
                     else:
-                        print("L3GD20 magnetometer not found, retrying...")
+                        json_parser.add_data("error", "L3GD20 magnetometer not found")
+                        message = json_parser.get_json_message()
+                        info_print(f"JSON message: {message}") 
+                        if ENABLE_UART_COMM:
+                            if message:
+                                comm.send_message(message)
+                        json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 l3gd20 = L3GD20(i2c)
@@ -94,14 +118,26 @@ def main():
                     if LSM303.get_accel_i2c_address() in devices:
                         break
                     else:
-                        print("LSM303D accelerometer not found, retrying...")
+                        json_parser.add_data("error", "LSM303D accelerometer not found")
+                        message = json_parser.get_json_message()
+                        info_print(f"JSON message: {message}") 
+                        if ENABLE_UART_COMM:
+                            if message:
+                                comm.send_message(message)
+                        json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 while True:
                     if LSM303.get_mag_i2c_address() in devices:
                         break
                     else:
-                        print("LSM303D magnetometer not found, retrying...")
+                        json_parser.add_data("error", "LSM303D magnetometer not found")
+                        message = json_parser.get_json_message()
+                        info_print(f"JSON message: {message}") 
+                        if ENABLE_UART_COMM:
+                            if message:
+                                comm.send_message(message)
+                        json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 lsm303d = LSM303(i2c)
@@ -111,12 +147,25 @@ def main():
                     if SCD41.get_i2c_address() in devices:
                         break
                     else:
-                        print("SCD41 CO2 sensor not found, retrying...")
+                        json_parser.add_data("error", "SCD41 CO2 sensor not found")
+                        message = json_parser.get_json_message()
+                        info_print(f"JSON message: {message}") 
+                        if ENABLE_UART_COMM:
+                            if message:
+                                comm.send_message(message)
+                        json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 scd41 = SCD41(i2c)
             
     except Exception as e:
+        json_parser.add_data("error", f"An error occurred during initialization: {e}")
+        message = json_parser.get_json_message()
+        info_print(f"JSON message: {message}") 
+        if ENABLE_UART_COMM:
+            if message:
+                comm.send_message(message)
+        json_parser.clear_json_message()
         error_print(f"An error occurred during initialization: {e}")
 
     while True:
@@ -128,6 +177,7 @@ def main():
                     json_parser.add_data("timestamp", datetime_str_iso)
                     datetime_str = format_brt_datetime(timestamp, ds1302.weekday_string(timestamp[3]))
                 except Exception as e:
+                    json_parser.add_data("error_ds1302", f"Error reading DS1302 data: {e}")
                     error_print(f"Error reading DS1302 data: {e}")
             else:
                 datetime_str = time.ticks_ms() / 60000
@@ -143,6 +193,7 @@ def main():
                         json_parser.add_data("pressure", pressure_hpa)
                         json_parser.add_data("humidity", humidity)
                 except Exception as e:
+                    json_parser.add_data("error_bme280", f"Error reading BME280 data: {e}")
                     error_print(f"Error reading BME280 data: {e}")
                     temp = None
                     pressure = None
@@ -166,6 +217,7 @@ def main():
                             info_print(f"[{datetime_str}] HC020K {key} - Distance: {distance:.3f} m")
                             json_parser.add_data(f"traveled.{key}", distance)
                 except Exception as e:
+                    json_parser.add_data("error_hc020k", f"Error reading HC020K data: {e}")
                     error_print(f"Error reading HC020K data: {e}")
             
             if any(ENABLE_HCSR04.values()):
@@ -176,6 +228,7 @@ def main():
                             info_print(f"[{datetime_str}] HCSR04 {key} - Distance: {distance:.3f} cm")
                             json_parser.add_data(f"distance.{key}", distance)
                 except Exception as e:
+                    json_parser.add_data("error_hcsr04", f"Error reading HCSR04 data: {e}")
                     error_print(f"Error reading HCSR04 data: {e}")
             
             if ENABLE_INA219 and ENABLE_I2C:
@@ -186,6 +239,7 @@ def main():
                     json_parser.add_data("battery_percentage", ina.battery_percentage())
                     info_print(f"[{datetime_str}] INA219 - Bus Voltage: %.3f V, Current: %.3f mA, Power: %.3f mW, Battery: %.3f%%" % (ina.voltage(), ina.current(), ina.power(), ina.battery_percentage()))
                 except Exception as e:
+                    json_parser.add_data("error_ina219", f"Error reading INA219: {e}")
                     error_print(f"Error reading INA219: {e}")
             
             if ENABLE_KY026:
@@ -199,6 +253,7 @@ def main():
                         info_print(f"[{datetime_str}] No flame detected.")
                         json_parser.add_data("flame", False)
                 except Exception as e:
+                    json_parser.add_data("error_ky026", f"Error reading KY026: {e}")
                     error_print(f"Error reading KY026: {e}")
             
             if ENABLE_MQ135:
@@ -220,6 +275,7 @@ def main():
                         else:
                             json_parser.add_data("nh3_alarm", False)
                 except Exception as e:
+                    json_parser.add_data("error_mq135", f"Error reading MQ135 data: {e}")
                     error_print(f"Error reading MQ135 data: {e}")
             
             if ENABLE_L3GD20 and ENABLE_I2C:
@@ -230,6 +286,7 @@ def main():
                     json_parser.add_data("gyroscope.z", gyro_data[2])
                     info_print(f"[{datetime_str}] L3GD20 - Gyroscope: %.3f rad/s, %.3f rad/s, %.3f rad/s" % (gyro_data[0], gyro_data[1], gyro_data[2]))
                 except Exception as e:
+                    json_parser.add_data("error_l3gd20", f"Error reading L3GD20: {e}")
                     error_print(f"Error reading L3GD20: {e}")
                 
             if ENABLE_LSM303D and ENABLE_I2C:
@@ -244,6 +301,7 @@ def main():
                     json_parser.add_data("magnetometer.z", mag_data[2])
                     info_print(f"[{datetime_str}] LSM303D - Accelerometer: %.3f m/s^2, %.3f m/s^2, %.3f m/s^2, Magnetometer: %.3f uT, %.3f uT, %.3f uT" % (accel_data[0], accel_data[1], accel_data[2], mag_data[0], mag_data[1], mag_data[2]))
                 except Exception as e:
+                    json_parser.add_data("error_lsm303d", f"Error reading LSM303D: {e}")
                     error_print(f"Error reading LSM303D: {e}")
                     
             if ENABLE_SCD41 and ENABLE_I2C:
@@ -264,6 +322,7 @@ def main():
                     else:
                         info_print("Failed to read SCD41 measurement")
                 except Exception as e:
+                    json_parser.add_data("error_scd41", f"Error reading SCD41 data: {e}")
                     error_print(f"Error reading SCD41 data: {e}")
                     
             message = json_parser.get_json_message()
