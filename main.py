@@ -7,16 +7,52 @@ from utils import *
 from sensors import BME280, HC020K, HCSR04, INA219, KY026, L3GD20, LSM303, MQ135, SCD41
 
 def main():
+    json_parser = None
+    comm = None
+    ds1302 = None
+    hc020k = None
+    hcsr04 = None
+    ky006 = None
+    ky026 = None
+    mq135 = None
+    i2c = None
+    bme = None
+    ina = None
+    l3gd20 = None
+    lsm303d = None
+    scd41 = None
+    
     try:
         json_parser = JSONParser()
-        
-        if ENABLE_UART_COMM:
+    except Exception as e:
+        error_print(f"Error initializing JSON parser: {e}")
+    
+    if ENABLE_UART_COMM:
+        try:
             comm = UARTComm(tx_pin=17, rx_pin=16, baudrate=UART_BAUD_RATE, timeout=UART_TIMEOUT)
-            
-        if ENABLE_DS1302:
+        except Exception as e:
+            json_parser.add_data("error", "Error initializing UART communication")
+            message = json_parser.get_json_message()
+            info_print(f"JSON message: {message}")
+            if ENABLE_UART_COMM and message:
+                comm.send_message(message)
+            json_parser.clear_json_message()
+            error_print("Error initializing UART communication")
+        
+    if ENABLE_DS1302:
+        try:
             ds1302 = DS1302(clk=23, dat=18, rst=19)
-            
-        if any(ENABLE_HC020K.values()):
+        except Exception as e:
+            json_parser.add_data("error", "Error initializing DS1302")
+            message = json_parser.get_json_message()
+            info_print(f"JSON message: {message}")
+            if ENABLE_UART_COMM and message:
+                comm.send_message(message)
+            json_parser.clear_json_message()
+            error_print("Error initializing DS1302")
+        
+    if any(ENABLE_HC020K.values()):
+        try:
             hc020k = {}
             if ENABLE_HC020K.get("front_left", False):
                 hc020k["front_left"] = HC020K(pin=14, interrupt_type=Pin.IRQ_RISING)
@@ -26,8 +62,17 @@ def main():
                 hc020k["rear_left"] = HC020K(pin=5, interrupt_type=Pin.IRQ_RISING)
             if ENABLE_HC020K.get("rear_right", False):
                 hc020k["rear_right"] = HC020K(pin=2, interrupt_type=Pin.IRQ_FALLING)
-            
-        if any(ENABLE_HCSR04.values()):
+        except Exception as e:
+            json_parser.add_data("error", f"Error initializing HC020K: {e}")
+            message = json_parser.get_json_message()
+            info_print(f"JSON message: {message}")
+            if ENABLE_UART_COMM and message:
+                comm.send_message(message)
+            json_parser.clear_json_message()
+            error_print(f"Error initializing HC020K: {e}")
+        
+    if any(ENABLE_HCSR04.values()):
+        try:
             hcsr04 = {}
             if ENABLE_HCSR04.get("front", False):
                 hcsr04["front"] = HCSR04(trig_pin=26, echo_pin=35)
@@ -37,17 +82,53 @@ def main():
                 hcsr04["right"] = HCSR04(trig_pin=33, echo_pin=39)
             if ENABLE_HCSR04.get("rear", False):
                 hcsr04["rear"] = HCSR04(trig_pin=32, echo_pin=36)
-                
-        if ENABLE_KY006:
-            ky006 = KY006(pin=13)
-                
-        if ENABLE_KY026:
-            ky026 = KY026(pin=4)
+        except Exception as e:
+            json_parser.add_data("error", f"Error initializing HCSR04: {e}")
+            message = json_parser.get_json_message()
+            info_print(f"JSON message: {message}") 
+            if ENABLE_UART_COMM and message:
+                comm.send_message(message)
+            json_parser.clear_json_message()
+            error_print(f"Error initializing HCSR04: {e}")
             
-        if ENABLE_MQ135:
-            mq135 = MQ135(adc_pin=27)
+    if ENABLE_KY006:
+        try:
+            ky006 = KY006(pin=13)
+        except Exception as e:
+            json_parser.add_data("error", f"Error initializing KY006: {e}")
+            message = json_parser.get_json_message()
+            info_print(f"JSON message: {message}") 
+            if ENABLE_UART_COMM and message:
+                comm.send_message(message)
+            json_parser.clear_json_message()
+            error_print(f"Error initializing KY006: {e}")
+            
+    if ENABLE_KY026:
+        try:
+            ky026 = KY026(pin=4)
+        except Exception as e:
+            json_parser.add_data("error", f"Error initializing KY026: {e}")
+            message = json_parser.get_json_message()
+            info_print(f"JSON message: {message}") 
+            if ENABLE_UART_COMM and message:
+                comm.send_message(message)
+            json_parser.clear_json_message()
+            error_print(f"Error initializing KY026: {e}")
         
-        if ENABLE_I2C:
+    if ENABLE_MQ135:
+        try:
+            mq135 = MQ135(adc_pin=27)
+        except Exception as e:
+            json_parser.add_data("error", f"Error initializing MQ135: {e}")
+            message = json_parser.get_json_message()
+            info_print(f"JSON message: {message}") 
+            if ENABLE_UART_COMM and message:
+                comm.send_message(message)
+            json_parser.clear_json_message()
+            error_print(f"Error initializing MQ135: {e}")
+    
+    if ENABLE_I2C:
+        try:
             i2c = I2C(0, scl=Pin(I2C_SCL_PIN), sda=Pin(I2C_SDA_PIN), freq=I2C_FREQ)
             devices = i2c.scan()
             while True:
@@ -58,14 +139,22 @@ def main():
                     json_parser.add_data("error", "No I2C devices found")
                     message = json_parser.get_json_message()
                     info_print(f"JSON message: {message}") 
-                    if ENABLE_UART_COMM:
-                        if message:
-                            comm.send_message(message)
+                    if ENABLE_UART_COMM and message:
+                        comm.send_message(message)
                     json_parser.clear_json_message()
                     time.sleep(1)
                     devices = i2c.scan()
-        
-            if ENABLE_BME280:
+        except Exception as e:
+            json_parser.add_data("error", f"Error initializing I2C: {e}")
+            message = json_parser.get_json_message()
+            info_print(f"JSON message: {message}") 
+            if ENABLE_UART_COMM and message:
+                comm.send_message(message)
+            json_parser.clear_json_message()
+            error_print(f"Error initializing I2C: {e}")
+    
+        if ENABLE_BME280:
+            try:
                 while True:
                     if BME280.get_i2c_address() in devices:
                         break
@@ -73,15 +162,23 @@ def main():
                         json_parser.add_data("error", "BME280 barometer/thermometer/hygrometer not found")
                         message = json_parser.get_json_message()
                         info_print(f"JSON message: {message}") 
-                        if ENABLE_UART_COMM:
-                            if message:
-                                comm.send_message(message)
+                        if ENABLE_UART_COMM and message:
+                            comm.send_message(message)
                         json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 bme = BME280(i2c)
-
-            if ENABLE_INA219:
+            except Exception as e:
+                json_parser.add_data("error", f"Error initializing BME280: {e}")
+                message = json_parser.get_json_message()
+                info_print(f"JSON message: {message}") 
+                if ENABLE_UART_COMM and message:
+                    comm.send_message(message)
+                json_parser.clear_json_message()
+                error_print(f"Error initializing BME280: {e}")
+                
+        if ENABLE_INA219:
+            try:
                 while True:
                     if INA219.get_i2c_address() in devices:
                         break
@@ -89,15 +186,23 @@ def main():
                         json_parser.add_data("error", "INA219 multimeter not found")
                         message = json_parser.get_json_message()
                         info_print(f"JSON message: {message}") 
-                        if ENABLE_UART_COMM:
-                            if message:
-                                comm.send_message(message)
+                        if ENABLE_UART_COMM and message:
+                            comm.send_message(message)
                         json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 ina = INA219(i2c)     
-
-            if ENABLE_L3GD20:
+            except Exception as e:
+                json_parser.add_data("error", f"Error initializing INA219: {e}")
+                message = json_parser.get_json_message()
+                info_print(f"JSON message: {message}") 
+                if ENABLE_UART_COMM and message:
+                    comm.send_message(message)
+                json_parser.clear_json_message()
+                error_print(f"Error initializing INA219: {e}")
+                
+        if ENABLE_L3GD20:
+            try:
                 while True:
                     if L3GD20.get_i2c_address() in devices:
                         break
@@ -105,15 +210,23 @@ def main():
                         json_parser.add_data("error", "L3GD20 magnetometer not found")
                         message = json_parser.get_json_message()
                         info_print(f"JSON message: {message}") 
-                        if ENABLE_UART_COMM:
-                            if message:
-                                comm.send_message(message)
+                        if ENABLE_UART_COMM and message:
+                            comm.send_message(message)
                         json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 l3gd20 = L3GD20(i2c)
+            except Exception as e:
+                json_parser.add_data("error", f"Error initializing L3GD20: {e}")
+                message = json_parser.get_json_message()
+                info_print(f"JSON message: {message}") 
+                if ENABLE_UART_COMM and message:
+                    comm.send_message(message)
+                json_parser.clear_json_message()
+                error_print(f"Error initializing L3GD20: {e}")
 
-            if ENABLE_LSM303D:
+        if ENABLE_LSM303D:
+            try:
                 while True:
                     if LSM303.get_accel_i2c_address() in devices:
                         break
@@ -121,12 +234,20 @@ def main():
                         json_parser.add_data("error", "LSM303D accelerometer not found")
                         message = json_parser.get_json_message()
                         info_print(f"JSON message: {message}") 
-                        if ENABLE_UART_COMM:
-                            if message:
-                                comm.send_message(message)
+                        if ENABLE_UART_COMM and message:
+                            comm.send_message(message)
                         json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
+            except Exception as e:
+                json_parser.add_data("error", f"Error initializing LSM303D: {e}")
+                message = json_parser.get_json_message()
+                info_print(f"JSON message: {message}") 
+                if ENABLE_UART_COMM and message:
+                    comm.send_message(message)
+                json_parser.clear_json_message()
+                error_print(f"Error initializing LSM303D: {e}")
+            try:
                 while True:
                     if LSM303.get_mag_i2c_address() in devices:
                         break
@@ -134,15 +255,23 @@ def main():
                         json_parser.add_data("error", "LSM303D magnetometer not found")
                         message = json_parser.get_json_message()
                         info_print(f"JSON message: {message}") 
-                        if ENABLE_UART_COMM:
-                            if message:
-                                comm.send_message(message)
+                        if ENABLE_UART_COMM and message:
+                            comm.send_message(message)
                         json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 lsm303d = LSM303(i2c)
-            
-            if ENABLE_SCD41:
+            except Exception as e:
+                json_parser.add_data("error", f"Error initializing LSM303D: {e}")
+                message = json_parser.get_json_message()
+                info_print(f"JSON message: {message}") 
+                if ENABLE_UART_COMM and message:
+                    comm.send_message(message)
+                json_parser.clear_json_message()
+                error_print(f"Error initializing LSM303D: {e}")
+        
+        if ENABLE_SCD41:
+            try:
                 while True:
                     if SCD41.get_i2c_address() in devices:
                         break
@@ -150,23 +279,21 @@ def main():
                         json_parser.add_data("error", "SCD41 CO2 sensor not found")
                         message = json_parser.get_json_message()
                         info_print(f"JSON message: {message}") 
-                        if ENABLE_UART_COMM:
-                            if message:
-                                comm.send_message(message)
+                        if ENABLE_UART_COMM and message:
+                            comm.send_message(message)
                         json_parser.clear_json_message()
                         time.sleep(1)
                         devices = i2c.scan()
                 scd41 = SCD41(i2c)
-            
-    except Exception as e:
-        json_parser.add_data("error", f"An error occurred during initialization: {e}")
-        message = json_parser.get_json_message()
-        info_print(f"JSON message: {message}") 
-        if ENABLE_UART_COMM:
-            if message:
-                comm.send_message(message)
-        json_parser.clear_json_message()
-        error_print(f"An error occurred during initialization: {e}")
+            except Exception as e:
+                json_parser.add_data("error", f"Error initializing SCD41: {e}")
+                message = json_parser.get_json_message()
+                info_print(f"JSON message: {message}") 
+                if ENABLE_UART_COMM:
+                    if message:
+                        comm.send_message(message)
+                json_parser.clear_json_message()
+                error_print(f"Error initializing SCD41: {e}")
 
     while True:
         try:
