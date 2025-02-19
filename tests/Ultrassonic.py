@@ -26,9 +26,9 @@ def medir_mediana(leituras=5, timeout=38000):
     for _ in range(leituras):
         # Gera o pulso TRIG
         TRIG_PIN.off()
-        time.sleep_us(2)  # 2 microsegundos
+        time.sleep(0.000002)  # 2 microsegundos
         TRIG_PIN.on()
-        time.sleep_us(10)  # 10 microsegundos
+        time.sleep(0.00001)  # 10 microsegundos
         TRIG_PIN.off()
 
         # Mede o tempo do pulso ECHO
@@ -40,7 +40,7 @@ def medir_mediana(leituras=5, timeout=38000):
             # Timeout: Pulso perdido
             pass
 
-        time.sleep_ms(50)  # Intervalo entre leituras
+        time.sleep(0.05)  # Intervalo entre leituras
 
 '''
     #Verifica se ha leituras suficientes para calcular a mediana

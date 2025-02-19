@@ -26,9 +26,9 @@ class KY006:
                     # print(f"Alarm {alarm_type} with frequency {freq} Hz for {duration} ms")
                     self.pwm.freq(freq)
                     self.pwm.duty_u16(32767)
-                    time.sleep_ms(duration)
+                    time.sleep(duration / 1000)
                     self.pwm.duty_u16(0)
-                    time.sleep_us(1)  # Short pause between syllables
+                    time.sleep(0.000001)  # Short pause between syllables
                 self.pwm.freq(1)  # Back to idle frequency
                 # print(f"Completed alarm for {alarm_type}")
             else:

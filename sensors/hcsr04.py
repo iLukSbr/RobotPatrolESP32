@@ -22,9 +22,9 @@ class HCSR04:
 
         for _ in range(readings):
             self.trig.off()
-            time.sleep_us(2)
+            time.sleep(0.000002)
             self.trig.on()
-            time.sleep_us(10)
+            time.sleep(0.00001)
             self.trig.off()
 
             try:
@@ -38,7 +38,7 @@ class HCSR04:
             except OSError as e:
                 print(f"Error: {e}")
 
-            time.sleep_ms(50)
+            time.sleep(0.05)
 
         if len(distances) < 3:
             return -1

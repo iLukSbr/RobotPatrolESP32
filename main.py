@@ -11,7 +11,7 @@ def main():
         json_parser = JSONParser()
         
         if ENABLE_UART_COMM:
-            comm = UARTComm(tx_pin=17, rx_pin=16, baudrate=UART_BAUD_RATE, timeout=UART_TIMEOUT)
+            comm = UARTComm(tx_pin=17, rx_pin=16, baudrate=UART_BAUD_RATE, timeout=UART_TIMEOUT, parity=0, stop=2)
             
         if ENABLE_DS1302:
             ds1302 = DS1302(clk=23, dat=18, rst=19)
@@ -332,7 +332,7 @@ def main():
                 if message:
                     comm.send_message(message)
             
-            time.sleep_ms(100)
+            time.sleep(0.1)
             
             json_parser.clear_json_message()
             

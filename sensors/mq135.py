@@ -79,7 +79,7 @@ class MQ135:
             self.read_raw_data()
             self.rs_air = self.get_corrected_resistance(temperature, humidity)
             Measure_Ro += self.rs_air
-            time.sleep_us(1)
+            time.sleep(0.000001)
         Measure_Ro = Measure_Ro / self.MQ_SAMPLE_TIME
         Measure_Ro = Measure_Ro / self.MEASURED_RO_IN_CLEAN_AIR
         return Measure_Ro
@@ -91,7 +91,7 @@ class MQ135:
             self.read_raw_data()
             self.rs_air = self.get_corrected_resistance(temperature, humidity)
             Measure_Rs += self.rs_air
-            time.sleep_us(1)
+            time.sleep(0.000001)
         Measure_Rs = Measure_Rs / self.MQ_SAMPLE_TIME
         return Measure_Rs
 
@@ -132,7 +132,7 @@ class MQ135:
         for _ in range(20):
             co2_values.append(self.calculate_ppm_CO2(temperature, humidity))
             nh3_values.append(self.calculate_ppb_NH3(temperature, humidity))
-            time.sleep_ms(40)  # Small delay between measurements
+            time.sleep(0.04)  # Small delay between measurements
 
         co2_values.sort()
         nh3_values.sort()

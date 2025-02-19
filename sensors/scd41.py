@@ -39,14 +39,14 @@ class SCD41:
     def is_connected(self) -> bool:
         # print("Checking if SCD41 is connected...")
         self.stop_periodic_measurement()
-        time.sleep_us(1)
+        time.sleep(0.000001)
 
         if self._error != 0:
             print(f"SCD4x returned endTransmission error {self._error}")
             return False
 
         self._command_sequence(0x3639)
-        time.sleep_us(1)
+        time.sleep(0.000001)
 
         data = self._read_bytes(3)
         if data != b'\x00\x00\x81':
@@ -110,7 +110,7 @@ class SCD41:
     def set_calibration_mode(self, enable_auto_calibration: bool) -> int:
         # print(f"Setting calibration mode to {'auto' if enable_auto_calibration else 'manual'}...")
         self.stop_periodic_measurement()
-        time.sleep_us(1)
+        time.sleep(0.000001)
 
         if enable_auto_calibration != self.get_calibration_mode():
             if enable_auto_calibration:
@@ -131,10 +131,10 @@ class SCD41:
     def reset_eeprom(self) -> int:
         # print("Resetting EEPROM...")
         self.stop_periodic_measurement()
-        time.sleep_us(1)
+        time.sleep(0.000001)
 
         self._command_sequence(0x3632)
-        time.sleep_us(1)
+        time.sleep(0.000001)
 
         if self._error != 0:
             print(f"EEPROM reset failed with error: {self.get_error_text(self._error)}")
@@ -145,7 +145,7 @@ class SCD41:
             # print("Saving settings to EEPROM...")
             self._command_sequence(0x3615)
             # print("Settings Saved to EEPROM")
-            time.sleep_us(1)
+            time.sleep(0.000001)
         else:
             print("Settings not changed, save command not sent")
 
@@ -198,7 +198,7 @@ class SCD41:
             except OSError as e:
                 last_error = e
                 last_error_code = e.args[0]
-                time.sleep_us(self.I2C_RETRY_DELAY_uS)
+                time.sleep(self.I2C_RETRY_DELAY_uS / 1000000)
         self._error = last_error_code
         print(f"Failed to write to register {register_address:04X} after {self.I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
 
@@ -214,7 +214,7 @@ class SCD41:
             except OSError as e:
                 last_error = e
                 last_error_code = e.args[0]
-                time.sleep_us(self.I2C_RETRY_DELAY_uS)
+                time.sleep(self.I2C_RETRY_DELAY_uS / 1000000)
         self._error = last_error_code
         print(f"Failed to read {num_bytes} bytes from address {self.address:02X} after {self.I2C_RETRY_COUNT} attempts with error: {self.get_error_text(self._error)}")
         return b''
