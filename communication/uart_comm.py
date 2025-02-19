@@ -13,7 +13,8 @@ class UARTComm:
     def __init__(self, tx_pin=TX_PIN, rx_pin=RX_PIN, baudrate=BAUD_RATE, uart_num=UART_NUM, timeout=TIMEOUT, parity=0, stop=2):
         try:
             self.uart = UART(uart_num, baudrate=baudrate, tx=Pin(tx_pin), rx=Pin(rx_pin), timeout=timeout, parity=parity, stop=stop)
-            print(f"UART initialized on TX pin {tx_pin} and RX pin {rx_pin}")
+            parity_str = "even" if parity == 0 else "odd"
+            print(f"UART initialized on TX pin {tx_pin} and RX pin {rx_pin} with {baudrate} baudrate, parity {parity_str}, and {stop} stop bits.")
         except Exception as e:
             print(f"Failed to initialize UART: {e}")
 
