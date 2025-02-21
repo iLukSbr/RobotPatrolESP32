@@ -57,4 +57,4 @@ In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susa
 
 ## Getting Help
 
-Join us in the [Robot Patrol Community](https://www.notion.so/Patrulha-Rob-12103987007e80c881e9e9322f15c88d) and post your question there in the correct category with a descriptive tag.  
+Join us in the [Robot Patrol Community](https://www.notion.so/Patrulha-Rob-12103987007e80c881e9e9322f15c88d) and post your question there in the correct category with a descriptive tag.

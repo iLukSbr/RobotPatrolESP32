@@ -14,4 +14,4 @@ For context on Robot Patrol's security notification process, please see the [Not
 
 ## Learning More About Security
 
-To learn more about securing an Robot Patrol application, please see the [security tutorial](https://www.notion.so/Patrulha-Rob-12103987007e80c881e9e9322f15c88d).  
+To learn more about securing an Robot Patrol application, please see the [security tutorial](https://www.notion.so/Patrulha-Rob-12103987007e80c881e9e9322f15c88d).
